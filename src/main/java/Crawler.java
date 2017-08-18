@@ -9,14 +9,13 @@ import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class Main {
+public class Crawler {
     //            **** Cache ****
     static LoadingCache<String,Boolean> cacheLoader;
     //            **** Cache ****
 
     //            **** Q ****
     static ArrayBlockingQueue<String > queue;
-
     //            **** Q ****
 
     //            **** writer ****
@@ -32,7 +31,8 @@ public class Main {
                         return Boolean.FALSE;
                     }
                 });
-        queue = new ArrayBlockingQueue<String>(50000);
+//        queue = new ArrayBlockingQueue<String>(50000);
+        Queue queue = new Queue();
         try {
             writer = new PrintWriter("the-file-name0.txt", "UTF-8");
         } catch (FileNotFoundException e) {
@@ -51,7 +51,6 @@ public class Main {
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
         for (int i = 0 ; i < 8 ; i++){
-
             ParserThread parserThread = new ParserThread(cacheLoader, queue, writer, i);
             threadList.add(parserThread);
         }
