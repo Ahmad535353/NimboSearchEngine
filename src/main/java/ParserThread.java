@@ -28,7 +28,7 @@ public class ParserThread implements Runnable{
                 URL url = new URL(link);
                 java.net.URLEncoder.encode(String.valueOf(url), "UTF-8");
                 String domain = url.getHost();
-                domain = InternetDomainName.from(domain).toString();
+                domain = InternetDomainName.from(domain).topPrivateDomain().toString();
                 Boolean var = cacheLoader.getIfPresent(domain);
                 if (var == null){
                     cacheLoader.get(domain);
@@ -59,7 +59,7 @@ public class ParserThread implements Runnable{
                             text.append(element.text());
                         }
                         String txt = text.toString();
-                        storage.addParsedData(link , txt ,doc.title());
+                        storage.addParsedData(link ,doc.title());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
