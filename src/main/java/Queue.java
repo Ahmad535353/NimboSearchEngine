@@ -1,20 +1,33 @@
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.*;
+import org.apache.kafka.clients.consumer.*;
+
+import java.util.*;
+
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Future;
 
 public class Queue {
-    private ArrayBlockingQueue<String> queue;
     public String take(){
         //taking first element of queue
-        try {
-            return queue.take();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
+
+        ConsumerRecords<String, String> records = ConsumerApp.myConsumer.poll(1000);
+        for (ConsumerRecord<String, String> record : records) {
+            return record.value().toString();
         }
+        return null;
+        //return queue.take();
     }
-    public boolean add(String newUrl){
-        return queue.add(newUrl);
+    public void add(String newUrl){
+        //key , Integer.toString(i)
+        ProducerApp.producer.send(new ProducerRecord<String, String>("my-topic", newUrl + ""));
+        //return queue.add(newUrl);
     }
     public Queue(){
-        queue = new ArrayBlockingQueue<String>(10000);
+        ConsumerApp consumerApp = new ConsumerApp();
+        ProducerApp producerApp = new ProducerApp();
+        //queue = new ArrayBlockingQueue<String>(10000);
     }
 }
