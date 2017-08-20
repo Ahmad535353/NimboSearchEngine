@@ -23,7 +23,6 @@ public class Crawler {
     //            **** writer ****
 
     public static void main(String args[]){
-
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
                     @Override
