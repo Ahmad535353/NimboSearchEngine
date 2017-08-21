@@ -14,13 +14,14 @@ import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
-public class Elastic {
+public class Elastic extends PrintWriter {
     static Settings settings = Settings.builder()
             .put("cluster.name", "SearchEngine").build();
     static TransportClient client;
@@ -55,8 +56,6 @@ public class Elastic {
                     .startObject()
                     .field("title",title)
                     .field("content", content)
-                    .field("RPScore", 0)
-                    .field("AhmadField", 0)
                     .endObject();
             response = client.prepareIndex(index, type,url)
                     .setSource(builder)
