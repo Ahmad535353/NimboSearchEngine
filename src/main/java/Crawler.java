@@ -18,11 +18,12 @@ public class Crawler {
     static ArrayBlockingQueue<String > queue;
     //            **** Q ****
 
-    //            **** writer ****
-    static PrintWriter writer = null;
-    //            **** writer ****
+    //            **** elastic ****
+    static Elastic elasticEngine;
+    //            **** elastic ****
 
     public static void main(String args[]){
+
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
                     @Override
@@ -32,28 +33,24 @@ public class Crawler {
                 });
 //        queue = new ArrayBlockingQueue<String>(50000);
         Queue queue = new Queue();
-        try {
-            writer = new PrintWriter("the-file-name0.txt", "UTF-8");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-//            **** Q ****
+        elasticEngine = new Elastic();
+
+
+        //            **** Q ****
         queue.add("https://en.wikipedia.org/wiki/Main_Page");
         queue.add("https://us.yahoo.com/");
         queue.add("https://www.nytimes.com/");
-        queue.add("https://www.msn.com/en-us/news");
+            queue.add("https://www.msn.com/en-us/news");
         queue.add("http://www.telegraph.co.uk/news/");
 //            **** Q ****
 
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
-        for (int i = 0 ; i < 8 ; i++){
-            ParserThread parserThread = new ParserThread(cacheLoader, queue, writer, i);
+        for (int i = 0 ; i < 1 ; i++){
+            ParserThread parserThread = new ParserThread(cacheLoader, queue, elasticEngine, i);
             threadList.add(parserThread);
         }
-        for (int i = 0 ; i < 8 ; i++){
+        for (int i = 0 ; i < 1 ; i++){
             threadList.get(i).joinThread();
         }
         time = System.currentTimeMillis() - time;

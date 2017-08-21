@@ -9,7 +9,7 @@ public class ConsumerApp {
     public ConsumerApp () {
         // Create the Properties class to instantiate the Consumer with the desired settings:
         Properties props = new Properties();
-        props.put("bootstrap.servers", "localhost:9092");
+        props.put("bootstrap.servers", "172.16.16.83:9092");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("fetch.min.bytes", 1);
