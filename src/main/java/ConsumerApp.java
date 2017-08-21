@@ -23,7 +23,7 @@ public class ConsumerApp {
         props.put("connections.max.idle.ms", 540000);
         props.put("enable.auto.commit", true);
         props.put("exclude.internal.topics", true);
-        props.put("max.poll.records", 20);
+        props.put("max.poll.records", 1);
         props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RangeAssignor");
         props.put("request.timeout.ms", 40000);
         props.put("auto.commit.interval.ms", 5000);
@@ -34,7 +34,7 @@ public class ConsumerApp {
         props.put("client.id", "");
 
         ArrayList<String> topics = new ArrayList<String>();
-        topics.add("my-9th-topic");
+        topics.add("my-10th-topic");
 
         // Create a KafkaConsumer instance and configure it with properties.
         for (int i = 0; i < threadNumber; ++i) {

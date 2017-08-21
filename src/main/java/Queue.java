@@ -20,7 +20,7 @@ public class Queue {
     }
     public void add(String newUrl , int threadNumber){
         //key , Integer.toString(i)
-        ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-9th-topic", newUrl + ""));
+        ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-10th-topic", newUrl + ""));
         //return queue.add(newUrl);
     }
     public Queue(int threadNumber){

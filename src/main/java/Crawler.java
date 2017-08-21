@@ -14,10 +14,6 @@ public class Crawler {
     static LoadingCache<String,Boolean> cacheLoader;
     //            **** Cache ****
 
-//    //            **** Q ****
-//    static ArrayBlockingQueue<String > queue;
-//    //            **** Q ****
-
     //            **** elastic ****
     static Elastic elasticEngine;
     //            **** elastic ****
@@ -31,26 +27,25 @@ public class Crawler {
                         return Boolean.FALSE;
                     }
                 });
-//        queue = new ArrayBlockingQueue<String>(50000);
-        Queue queue = new Queue();
+        Queue queue = new Queue(64);
         elasticEngine = new Elastic();
 
 
         //            **** Q ****
-        queue.add("https://en.wikipedia.org/wiki/Main_Page");
-        queue.add("https://us.yahoo.com/");
-        queue.add("https://www.nytimes.com/");
-        queue.add("https://www.msn.com/en-us/news");
-        queue.add("http://www.telegraph.co.uk/news/");
+        queue.add("https://en.wikipedia.org/wiki/Main_Page",0);
+        queue.add("https://us.yahoo.com/",1);
+        queue.add("https://www.nytimes.com/",2);
+        queue.add("https://www.msn.com/en-us/news",3);
+        queue.add("http://www.telegraph.co.uk/news/",4);
 //            **** Q ****
 
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
-        for (int i = 0 ; i < 1 ; i++){
+        for (int i = 0 ; i < 64 ; i++){
             ParserThread parserThread = new ParserThread(cacheLoader, queue, elasticEngine, i);
             threadList.add(parserThread);
         }
-        for (int i = 0 ; i < 1 ; i++){
+        for (int i = 0 ; i < 64 ; i++){
             threadList.get(i).joinThread();
         }
         time = System.currentTimeMillis() - time;
