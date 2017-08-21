@@ -10,10 +10,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
 
 public class Queue {
-    public String take(){
+    public String take(int threadNumber){
         //taking first element of queue
 
-        ConsumerRecords<String, String> records = ConsumerApp.myConsumer.poll(1000);
+        ConsumerRecords<String, String> records = ConsumerApp.myConsumers[threadNumber].poll(1000);
         for (ConsumerRecord<String, String> record : records) {
             return record.value().toString();
         }
@@ -22,11 +22,12 @@ public class Queue {
     }
     public void add(String newUrl){
         //key , Integer.toString(i)
-        ProducerApp.producer.send(new ProducerRecord<String, String>("my-topic", newUrl + ""));
+        ProducerApp.producer.send(new ProducerRecord<String, String>("my-9th-topic", newUrl + ""));
         //return queue.add(newUrl);
     }
-    public Queue(){
-        ConsumerApp consumerApp = new ConsumerApp();
+    public Queue(int threadNumber){
+        // ConsumerApp consumerApp = new ConsumerApp();
+        ConsumerApp consumerApp = new ConsumerApp(threadNumber);
         ProducerApp producerApp = new ProducerApp();
         //queue = new ArrayBlockingQueue<String>(10000);
     }

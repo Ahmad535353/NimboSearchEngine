@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
-public class Elastic extends PrintWriter {
+public class Elastic{
     static Settings settings = Settings.builder()
             .put("cluster.name", "SearchEngine").build();
     static TransportClient client;
