@@ -99,7 +99,7 @@ public class ParserThread implements Runnable{
                     break;
                 } catch (ExecutionException e) {
                     if (j == 2){
-                        queue.add(link);
+                        queue.add(link , );
                     }
 //                    e.printStackTrace();
                 } catch (MalformedURLException e) {

@@ -14,9 +14,9 @@ public class Crawler {
     static LoadingCache<String,Boolean> cacheLoader;
     //            **** Cache ****
 
-    //            **** Q ****
-    static ArrayBlockingQueue<String > queue;
-    //            **** Q ****
+//    //            **** Q ****
+//    static ArrayBlockingQueue<String > queue;
+//    //            **** Q ****
 
     //            **** elastic ****
     static Elastic elasticEngine;
