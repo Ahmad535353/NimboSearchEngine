@@ -1,8 +1,8 @@
 import org.apache.tika.language.LanguageIdentifier;
 
 public class LanguageDetector {
-    public String detectLanguage(){
-        LanguageIdentifier identifier = new LanguageIdentifier("this is english ");
+    public String detectLanguage(String text){
+        LanguageIdentifier identifier = new LanguageIdentifier(text);
         String language = identifier.getLanguage();
         return language;
     }
