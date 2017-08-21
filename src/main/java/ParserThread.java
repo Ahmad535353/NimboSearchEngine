@@ -50,8 +50,6 @@ public class ParserThread implements Runnable{
                             doc = Jsoup.connect(link)
                                     .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                                     .ignoreHttpErrors(true).get();
-                            Connection.Request test = Jsoup.connect(link).request();
-                            Connection.Response test1 = Jsoup.connect(link).execute();
                             Jsoup.connect(link);
                             i++;
                             String title = doc.title();

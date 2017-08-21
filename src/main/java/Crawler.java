@@ -40,7 +40,7 @@ public class Crawler {
         queue.add("https://en.wikipedia.org/wiki/Main_Page");
         queue.add("https://us.yahoo.com/");
         queue.add("https://www.nytimes.com/");
-            queue.add("https://www.msn.com/en-us/news");
+        queue.add("https://www.msn.com/en-us/news");
         queue.add("http://www.telegraph.co.uk/news/");
 //            **** Q ****
 
@@ -55,45 +55,5 @@ public class Crawler {
         }
         time = System.currentTimeMillis() - time;
         System.out.println(time);
-
-//        int fileName = 0;
-//        org.jsoup.nodes.Document doc = null;
-//        Elements elements = null;
-//
-//
-//        while (queue.size() != 0){
-//            try {
-//                String link = queue.take();
-//                URL url = new URL(link);
-//                String domain = url.getHost();
-//                Boolean var = cacheLoader.getIfPresent(domain);
-//                if (var == null){
-//                    try {
-//                        doc = Jsoup.connect(link).get();
-//                        cacheLoader.get(domain);
-//                        elements = doc.select("a[href]");
-//                        writer = new PrintWriter("the-file-name" + fileName + ".txt", "UTF-8");
-//                        fileName++;
-//                        for (org.jsoup.nodes.Element element : elements){
-//                            writer.println(element.attr("title"));
-//                            writer.println(element.attr("abs:href") + "\n\n");
-//                            queue.add(element.attr("abs:href"));
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                else {
-//                    queue.add(link);
-//                }
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
     }
 }

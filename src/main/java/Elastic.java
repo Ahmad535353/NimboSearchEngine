@@ -56,6 +56,7 @@ public class Elastic {
                     .field("title",title)
                     .field("content", content)
                     .field("RPScore", 0)
+                    .field("AhmadField", 0)
                     .endObject();
             response = client.prepareIndex(index, type,url)
                     .setSource(builder)
