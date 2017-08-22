@@ -8,8 +8,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Crawler {
+    public static AtomicInteger UCount=new AtomicInteger(0);
     //            **** Cache ****
     static LoadingCache<String,Boolean> cacheLoader;
     //            **** Cache ****
@@ -19,8 +21,7 @@ public class Crawler {
     //            **** elastic ****
 
     public static void main(String args[]){
-        int threadNumber = 256;
-
+        SearchUI su=new SearchUI("176.31.102.177",9300,"176.31.183.83",9300);
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
                     @Override
@@ -28,7 +29,7 @@ public class Crawler {
                         return Boolean.FALSE;
                     }
                 });
-        Queue queue = new Queue(threadNumber);
+        Queue queue = new Queue(32);
         elasticEngine = new Elastic();
 
 
@@ -42,14 +43,14 @@ public class Crawler {
 
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
-        for (int i = 0 ; i < threadNumber ; i++){
+        for (int i = 0 ; i < 32 ; i++){
             ParserThread parserThread = new ParserThread(cacheLoader, queue, elasticEngine, i);
             threadList.add(parserThread);
         }
-        for (int i = 0 ; i < threadNumber ; i++){
+        for (int i = 0 ; i < 32 ; i++){
             threadList.get(i).joinThread();
         }
         time = System.currentTimeMillis() - time;
-        System.out.println(time);
+        //System.out.println(time); /ahmad
     }
 }

@@ -12,15 +12,15 @@ import java.util.concurrent.Future;
 public class Queue {
     public ArrayList<String> take(int threadNumber){
         //taking first element of queue
-        ArrayList<String> urls = new ArrayList<String>();
+        ArrayList<String> urls = new ArrayList<>();
         ConsumerRecords<String, String> records = ConsumerApp.myConsumers[threadNumber].poll(1000);
-        for (ConsumerRecord<String , String> record : records)
+        for (ConsumerRecord<String , String> record:records)
             urls.add(record.value().toString());
         return urls;
     }
     public void add(String newUrl , int threadNumber){
         //key , Integer.toString(i)
-        ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-16th-topic", newUrl + ""));
+        ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-17th-topic", newUrl + ""));
         //return queue.add(newUrl);
     }
     public Queue(int threadNumber){

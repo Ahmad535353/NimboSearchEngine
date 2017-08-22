@@ -15,6 +15,7 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +50,14 @@ public class Elastic{
     // --------------------- index ------------------------------
     public static IndexResponse IndexData(String url, String content, String title, String index, String type)
     {
+        final byte[] utf8Bytes;
+        try {
+            utf8Bytes = url.getBytes("UTF-8");
+            if(utf8Bytes.length>512)
+                return null;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         IndexResponse response=new IndexResponse();
         try {
             XContentBuilder builder;
