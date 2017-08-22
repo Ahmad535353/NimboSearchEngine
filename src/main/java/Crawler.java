@@ -19,6 +19,7 @@ public class Crawler {
     //            **** elastic ****
 
     public static void main(String args[]){
+        int threadNumber = 256;
 
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
@@ -27,7 +28,7 @@ public class Crawler {
                         return Boolean.FALSE;
                     }
                 });
-        Queue queue = new Queue(64);
+        Queue queue = new Queue(threadNumber);
         elasticEngine = new Elastic();
 
 
@@ -41,11 +42,11 @@ public class Crawler {
 
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
-        for (int i = 0 ; i < 64 ; i++){
+        for (int i = 0 ; i < threadNumber ; i++){
             ParserThread parserThread = new ParserThread(cacheLoader, queue, elasticEngine, i);
             threadList.add(parserThread);
         }
-        for (int i = 0 ; i < 64 ; i++){
+        for (int i = 0 ; i < threadNumber ; i++){
             threadList.get(i).joinThread();
         }
         time = System.currentTimeMillis() - time;

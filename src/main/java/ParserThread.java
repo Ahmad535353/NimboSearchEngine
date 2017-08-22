@@ -50,7 +50,7 @@ public class ParserThread implements Runnable{
                             try {
                                 doc = Jsoup.connect(link)
                                         .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
-                                        .ignoreHttpErrors(true).timeout(2000).get();
+                                        .ignoreHttpErrors(true).timeout(1000).get();
                                 i++;
                                 String title = doc.title();
 
@@ -88,7 +88,6 @@ public class ParserThread implements Runnable{
                             }
 //              --------------extract text-----------------------------
                         }
-
                         else {
 //              --------------LRUCache limit---------------------------
 //              add to kafka
