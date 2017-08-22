@@ -1,30 +1,35 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Java template
-# Compiled class file
-*.class
+# User-specific stuff:
+.idea/**/workspace.xml
 
-# Log file
-*.log
+# Sensitive or high-churn files:
+.idea/**/uiDesigner.xml
 
-# BlueJ files
-*.ctxt
+# Gradle:
+.idea/**/libraries
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
 
-# Package Files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
+# OS generated files:
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# IDE module files:
+NimboProj1.2.iml
 
-#IDE Default Generates this files:
+# Other IDE files:
+.idea/compiler.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+
+# Data And Logs Files
+Logs
+Data
+# target and resources
+src/main/resources/
+src/test/
 target/
-.idea/
-Crawler.iml
-.idea/workspace.xml
