@@ -26,7 +26,7 @@ public class ParserThread implements Runnable{
             ArrayList<String> linksRecievedFromKafka = queue.take(threadNum);
             for (int z = 0; z < linksRecievedFromKafka.size(); z++) {
                 String link = linksRecievedFromKafka.get(z);
-                for (int j = 0; j < 1; j++) {
+                for (int j = 0; j < 2; j++) {
                     try {
                         URL url = new URL(link);
                         java.net.URLEncoder.encode(String.valueOf(url), "UTF-8");
@@ -49,7 +49,7 @@ public class ParserThread implements Runnable{
                             try {
                                 doc = Jsoup.connect(link)
                                         .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
-                                        .ignoreHttpErrors(true).timeout(300).get();
+                                        .ignoreHttpErrors(true).timeout(250).get();
                                 //i++; ahmad
                                 String title = doc.title();
 
@@ -96,7 +96,7 @@ public class ParserThread implements Runnable{
                         }
                         break;
                     } catch (ExecutionException e) {
-                        if (j == 2){
+                        if (j == 1){
                             queue.add(link , threadNum);
                         }
 //                    e.printStackTrace();
