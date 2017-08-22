@@ -67,6 +67,7 @@ public class SearchUI {
                     String words[]=str.split(" ");
                     SearchResponse SR=SearchData(words, "myindex", "mytype");
                     Iterator<SearchHit> a=SR.getHits().iterator();
+                    System.out.println(Crawler.UCount);
                     while(a.hasNext())
                     {
                         System.out.println(a.next().getId());

@@ -24,11 +24,11 @@ public class ParserThread implements Runnable{
         Elements elements = null;
 
 
-        for (int i = 0 ; i < 30;){
+        for (int i = 0 ; i < 30;i++){
             ArrayList<String> linksRecievedFromKafka = queue.take(threadNum);
             for (int z = 0; z < linksRecievedFromKafka.size(); z++) {
                 String link = linksRecievedFromKafka.get(z);
-                for (int j = 0; j < 3; j++) {
+                for (int j = 0; j < 1; j++) {
                     try {
                         URL url = new URL(link);
                         java.net.URLEncoder.encode(String.valueOf(url), "UTF-8");
@@ -46,12 +46,13 @@ public class ParserThread implements Runnable{
 //              --------------extracted data-------------------------
 
                         if (var == null){
+                            Crawler.UCount.incrementAndGet();
                             cacheLoader.get(domain);
                             try {
                                 doc = Jsoup.connect(link)
                                         .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
-                                        .ignoreHttpErrors(true).timeout(2000).get();
-                                i++;
+                                        .ignoreHttpErrors(true).timeout(300).get();
+                                //i++; ahmad
                                 String title = doc.title();
 
                                 //System.out.println("Thread" + threadNum + " parsed:"); /ahmad
