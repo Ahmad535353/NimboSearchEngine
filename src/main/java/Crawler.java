@@ -19,7 +19,7 @@ public class Crawler {
     //            **** elastic ****
 
     public static void main(String args[]){
-
+        SearchUI su=new SearchUI("176.31.102.177",9300,"176.31.183.83",9300);
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
                     @Override
@@ -49,6 +49,6 @@ public class Crawler {
             threadList.get(i).joinThread();
         }
         time = System.currentTimeMillis() - time;
-        System.out.println(time);
+        //System.out.println(time); /ahmad
     }
 }

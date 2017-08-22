@@ -54,10 +54,10 @@ public class ParserThread implements Runnable{
                                 i++;
                                 String title = doc.title();
 
-                                System.out.println("Thread" + threadNum + " parsed:");
-                                System.out.println(link);
-                                System.out.println(domain);
-                                System.out.println(i);
+                                //System.out.println("Thread" + threadNum + " parsed:"); /ahmad
+                                //System.out.println(link); /ahmad
+                                //System.out.println(domain); /ahmad
+                                //System.out.println(i); /ahmad
 
 //              --------------extract urls-----------------------------
                                 elements = doc.select("a[href]");
