@@ -1,11 +1,9 @@
 import com.google.common.cache.LoadingCache;
 import com.google.common.net.InternetDomainName;
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -62,17 +60,14 @@ public class ParserThread implements Runnable{
 
 //              --------------extract urls-----------------------------
                                 elements = doc.select("a[href]");
-                                for (org.jsoup.nodes.Element element : elements){
-                                    String temp = element.attr("abs:href");
-                                    if (storage.check(temp)) {      // check url with HBase
-//                                update hbase
-                                    }
-                                    else {
-//                                        add data to Hbase
-//                                this url is new. add to kafka
-                                        queue.add(temp,threadNum);
-                                    }
+                                String[] links = new String[elements.size()];
+                                for (int k = 0; k < elements.size(); k++){
+                                    String slink = elements.get(k).attr("abs:href");
+                                    links[k] = slink;
+                                    if (!storage.exists(slink))     // check url with HBase
+                                        queue.add(slink,threadNum);
                                 }
+                                storage.addLinks(link, links);    // put urls in HBase
 //              --------------extract urls-----------------------------
 
 //              --------------extract text-----------------------------

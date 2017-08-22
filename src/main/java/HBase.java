@@ -1,13 +1,69 @@
-import com.google.common.net.InternetDomainName;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
+
+import java.io.IOException;
 import java.util.HashMap;
 
 public class HBase {
-    private HashMap<String , String> urlsStorage = new HashMap<String, String>();
-    public void addParsedData(String url , String title ){
-        urlsStorage.put(url, url);
+    private HashMap<String, String> urlsStorage = new HashMap<String, String>();
+    private Configuration config;
+    private Table table;
+
+    public HBase() {
+        this("Links");
     }
-    public boolean check(String url){
-        return urlsStorage.containsKey(url);
+
+    public HBase(String tableName) {
+        // Instantiating Configuration class
+        config = HBaseConfiguration.create();
+
+        // Instantiating HTable class
+        table = null;
+        try {
+            table = ConnectionFactory.createConnection(config).getTable(TableName.valueOf(tableName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addLinks(String url, String[] links) {
+
+        // Instantiating Put class
+        // accepts a row name.
+        Put put = new Put(Bytes.toBytes(url));
+
+        // adding values using addColumn() method
+        // accepts column family name, qualifier/row name ,value
+        for (String link : links) {
+            put.addColumn(Bytes.toBytes("links"),
+                    Bytes.toBytes(link), Bytes.toBytes("1"));
+        }
+        // Saving the put Instance to the HTable.
+        try {
+            table.put(put);
+            System.out.println("data inserted");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean exists(String url) {
+
+        // Instantiating Get class
+        Get g = new Get(Bytes.toBytes(url));
+
+        // Reading the data
+        Result result = null;
+        try {
+            result = table.get(g);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return !result.isEmpty();
     }
 }
