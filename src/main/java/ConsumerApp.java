@@ -34,7 +34,7 @@ public class ConsumerApp {
         props.put("client.id", "");
 
         ArrayList<String> topics = new ArrayList<String>();
-        topics.add("my-23th-topic");
+        topics.add("my-24th-topic");
 
         // Create a KafkaConsumer instance and configure it with properties.
         for (int i = 0; i < threadNumber; ++i) {
