@@ -23,7 +23,7 @@ public class ParserThread implements Runnable{
         Elements elements = null;
 //        System.out.println("thread started");
         int countUrlInThread = 0;
-        for (int i = 0 ; i < 300;i++){
+        for (int i = 0 ; true; i++){
             ArrayList<String> linksRecievedFromKafka = queue.take(threadNum);
 //            System.out.println("Q taked");
             for (int z = 0; z < linksRecievedFromKafka.size(); z++) {
