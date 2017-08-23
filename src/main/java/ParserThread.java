@@ -24,11 +24,12 @@ public class ParserThread implements Runnable {
         org.jsoup.nodes.Document doc = null;
         Elements elements = null;
 
-
+        System.out.println("thread started");
         for (int i = 0; i < 30; ) {
             String link = null;
             try {
                 link = queue.take(threadNumber);
+                System.out.println("taked from Q");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

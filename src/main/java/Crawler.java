@@ -34,6 +34,7 @@ public class Crawler {
 
 
         //            **** Q ****
+        System.out.println("seed added");
         queue.add("https://en.wikipedia.org/wiki/Main_Page",0);
         queue.add("https://us.yahoo.com/",1);
         queue.add("https://www.nytimes.com/",2);
