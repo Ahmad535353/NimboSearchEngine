@@ -29,5 +29,4 @@ public class Queue {
         ProducerApp producerApp = new ProducerApp(threadNumber);
         //queue = new ArrayBlockingQueue<String>(10000);
     }
-
 }
