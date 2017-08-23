@@ -14,7 +14,7 @@ public class HBase {
     private Table table;
 
     public HBase() {
-        this("Links");
+        this("Ali");
     }
 
     public HBase(String tableName) {
@@ -43,7 +43,7 @@ public class HBase {
             if (link.length() > 500 || link.length() < 1){
                 continue;
             }
-            put.addColumn(Bytes.toBytes("links"),
+            put.addColumn(Bytes.toBytes("ali"),
                     Bytes.toBytes(link), Bytes.toBytes("1"));
             flag = true;
         }
