@@ -39,6 +39,9 @@ public class HBase {
         // adding values using addColumn() method
         // accepts column family name, qualifier/row name ,value
         for (String link : links) {
+            if (link.length() > 500 || link.length() < 1){
+                continue;
+            }
             put.addColumn(Bytes.toBytes("links"),
                     Bytes.toBytes(link), Bytes.toBytes("1"));
         }
@@ -52,6 +55,9 @@ public class HBase {
     }
 
     public boolean exists(String url) {
+        if (url.length() < 1 || url.length() > 500){
+            return true;        // dont add to kafka
+        }
 
         // Instantiating Get class
         Get g = new Get(Bytes.toBytes(url));

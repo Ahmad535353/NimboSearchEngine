@@ -21,12 +21,9 @@ public class ParserThread implements Runnable{
     public void run() {
         org.jsoup.nodes.Document doc = null;
         Elements elements = null;
-
-
+        int countUrlInThread = 0;
         for (int i = 0 ; i < 30;i++){
-            System.out.println("thread"+threadNum+ " started");
             ArrayList<String> linksRecievedFromKafka = queue.take(threadNum);
-            System.out.println(linksRecievedFromKafka.get(0) + "taked from kafka");
             for (int z = 0; z < linksRecievedFromKafka.size(); z++) {
                 String link = linksRecievedFromKafka.get(z);
                 for (int j = 0; j < 2; j++) {
@@ -53,13 +50,13 @@ public class ParserThread implements Runnable{
                                 doc = Jsoup.connect(link)
                                         .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                                         .ignoreHttpErrors(true).timeout(250).get();
-                                //i++; ahmad
+                                countUrlInThread++;
                                 String title = doc.title();
 
                                 System.out.println("Thread" + threadNum + " parsed:"); //ahmad
                                 System.out.println(link); //ahmad
                                 System.out.println(domain); //ahmad
-                                System.out.println(i); //ahmad
+                                System.out.println(countUrlInThread); //ahmad
 
 //              --------------extract urls-----------------------------
                                 elements = doc.select("a[href]");
