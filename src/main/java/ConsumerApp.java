@@ -11,7 +11,7 @@ public class ConsumerApp {
 
         // Create the Properties class to instantiate the Consumer with the desired settings:
         Properties props = new Properties();
-        props.put("bootstrap.servers", "176.31.102.177:9092");
+        props.put("bootstrap.servers", "localhost:9092");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("fetch.min.bytes", 1);
@@ -23,7 +23,7 @@ public class ConsumerApp {
         props.put("connections.max.idle.ms", 540000);
         props.put("enable.auto.commit", true);
         props.put("exclude.internal.topics", true);
-        props.put("max.poll.records", 50);
+        props.put("max.poll.records", 100);
         props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RangeAssignor");
         props.put("request.timeout.ms", 40000);
         props.put("auto.commit.interval.ms", 5000);
@@ -34,7 +34,7 @@ public class ConsumerApp {
         props.put("client.id", "");
 
         ArrayList<String> topics = new ArrayList<String>();
-        topics.add("my-17th-topic");
+        topics.add("my-12th-topic");
 
         // Create a KafkaConsumer instance and configure it with properties.
         for (int i = 0; i < threadNumber; ++i) {

@@ -18,8 +18,8 @@ public class Crawler {
     //            **** elastic ****
     static Elastic elasticEngine;
     //            **** elastic ****
-    public static void main(String args[]){
-        int threadNumber = 32;
+    public static void main(String args[]) throws InterruptedException {
+        int threadNumber = 420;
 
        // SearchUI su = new SearchUI("176.31.102.177",9300,"176.31.183.83",9300);
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
@@ -39,18 +39,40 @@ public class Crawler {
         queue.add("https://www.nytimes.com/",2);
         queue.add("https://www.msn.com/en-us/news",3);
         queue.add("http://www.telegraph.co.uk/news/",4);
+        queue.add("http://www.answers.com/",5);
+        queue.add("https://www.reference.com/",6);
+        queue.add("http://www.wikihow.com/Main-Page/",7);
+        queue.add("https://stackexchange.com/",8);
+        queue.add("http://hubpages.com/",9);
+        queue.add("https://archive.org/",10);
+
 //            **** Q ****
 
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
-        for (int i = 0 ; i < threadNumber ; i++){
+        ArrayList<StoreInQ> storeInQS = new ArrayList<StoreInQ>();
+
+        for (int i = 0 ; i < threadNumber; i++){
             ParserThread parserThread = new ParserThread(cacheLoader, queue, elasticEngine, i);
             threadList.add(parserThread);
         }
+
+        for (int i = 0; i < threadNumber / 10; ++i) {
+            StoreInQ storeInQ = new StoreInQ(i);
+            storeInQS.add(storeInQ);
+            storeInQ.start();
+        }
+
+
         for (int i = 0 ; i < threadNumber ; i++){
             threadList.get(i).joinThread();
         }
+
+        for (int i = 0; i < threadNumber / 10; ++i) {
+            storeInQS.get(i).stop();
+        }
         time = System.currentTimeMillis() - time;
-        System.out.println(time + "  " + UCount); //ahmad
+
+        System.out.println(time + "  " + UCount); //result
     }
 }
