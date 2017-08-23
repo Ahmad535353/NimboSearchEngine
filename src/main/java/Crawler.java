@@ -39,6 +39,11 @@ public class Crawler {
         queue.add("https://www.nytimes.com/",2);
         queue.add("https://www.msn.com/en-us/news",3);
         queue.add("http://www.telegraph.co.uk/news/",4);
+        queue.add("http://www.alexa.com",5);
+        queue.add("http://www.apache.org",6);
+        queue.add("https://en.wikipedia.org/wiki/Main_Page/World_war_II",7);
+        queue.add("http://www.news.google.com",8);
+        queue.add("http://www.independent.co.uk",9);
 //            **** Q ****
 
         long time = System.currentTimeMillis();
