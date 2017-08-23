@@ -1,7 +1,7 @@
 import java.io.UnsupportedEncodingException;
 
 public class LanguageDetector {
-    public Boolean IsEnglish(String str,double d)
+    public static Boolean IsEnglish(String str,double d)
     {
         try {
             if(str.length()==0)

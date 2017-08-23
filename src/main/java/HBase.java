@@ -31,11 +31,12 @@ public class HBase {
     }
 
     public void addLinks(String url, String[] links) {
-
+        boolean flag = false;
         // Instantiating Put class
         // accepts a row name.
         Put put = new Put(Bytes.toBytes(url));
-
+        if(url.length() < 1 || url.length() > 500)
+            return;
         // adding values using addColumn() method
         // accepts column family name, qualifier/row name ,value
         for (String link : links) {
@@ -44,13 +45,16 @@ public class HBase {
             }
             put.addColumn(Bytes.toBytes("links"),
                     Bytes.toBytes(link), Bytes.toBytes("1"));
+            flag = true;
         }
         // Saving the put Instance to the HTable.
-        try {
-            table.put(put);
-            System.out.println("data inserted");
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(flag) {
+            try {
+                table.put(put);
+                System.out.println("data inserted");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -73,18 +73,16 @@ public class ParserThread implements Runnable {
 
 //              --------------extract text-----------------------------
 
-//                            --------------extract urls-----------------------------
-                                    elements = doc.select("a[href]");
-                            for (org.jsoup.nodes.Element element : elements) {
-                                String temp = element.attr("abs:href");
-                                if (storage.check(temp)) {      // check url with HBase
-//                                  update hbase
-                                } else {
-//                                  add data to Hbase
-//                                  this url is new. add to kafka
-                                    queue.add(temp, threadNumber);
-                                }
+                            //              --------------extract urls-----------------------------
+                            elements = doc.select("a[href]");
+                            String[] links = new String[elements.size()];
+                            for (int k = 0; k < elements.size(); k++){
+                                String slink = elements.get(k).attr("abs:href");
+                                links[k] = slink;
+                                if (!storage.exists(slink))     // check url with HBase
+                                    queue.add(slink,threadNumber);
                             }
+                            storage.addLinks(link, links);    // put urls in HBase
 //              --------------extract urls-----------------------------
 
 

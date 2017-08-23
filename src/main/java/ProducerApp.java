@@ -9,7 +9,7 @@ public class ProducerApp {
 
     public ProducerApp(int threadNumber) {
         Properties props = new Properties();
-        props.put("bootstrap.servers", "176.31.102.177:9092");
+        props.put("bootstrap.servers", "176.31.102.177:9092 , 176.31.183.83:9092");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 16384);
@@ -17,6 +17,7 @@ public class ProducerApp {
         props.put("buffer.memory", 33554432);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        producers = new Producer[threadNumber];
         for (int i = 0 ; i < threadNumber; i++)
             producers[i] = new KafkaProducer<String, String>(props);
     }

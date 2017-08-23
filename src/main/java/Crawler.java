@@ -19,7 +19,7 @@ public class Crawler {
     static Elastic elasticEngine;
     //            **** elastic ****
     public static void main(String args[]) throws InterruptedException {
-        int threadNumber = 420;
+        int threadNumber = 240;
 
        // SearchUI su = new SearchUI("176.31.102.177",9300,"176.31.183.83",9300);
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
