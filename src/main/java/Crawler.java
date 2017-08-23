@@ -31,7 +31,7 @@ public class Crawler {
                 });
         Queue queue = new Queue(32);
         elasticEngine = new Elastic();
-
+        System.out.println("seed added");
 
         //            **** Q ****
         queue.add("https://en.wikipedia.org/wiki/Main_Page",0);

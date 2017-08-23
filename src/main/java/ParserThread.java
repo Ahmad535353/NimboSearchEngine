@@ -21,9 +21,11 @@ public class ParserThread implements Runnable{
     public void run() {
         org.jsoup.nodes.Document doc = null;
         Elements elements = null;
+        System.out.println("thread started");
         int countUrlInThread = 0;
         for (int i = 0 ; i < 30;i++){
             ArrayList<String> linksRecievedFromKafka = queue.take(threadNum);
+            System.out.println("Q taked");
             for (int z = 0; z < linksRecievedFromKafka.size(); z++) {
                 String link = linksRecievedFromKafka.get(z);
                 for (int j = 0; j < 2; j++) {

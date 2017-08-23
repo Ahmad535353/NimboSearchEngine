@@ -23,7 +23,7 @@ public class ConsumerApp {
         props.put("connections.max.idle.ms", 540000);
         props.put("enable.auto.commit", true);
         props.put("exclude.internal.topics", true);
-        props.put("max.poll.records", 50);
+        props.put("max.poll.records", 100);
         props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RangeAssignor");
         props.put("request.timeout.ms", 40000);
         props.put("auto.commit.interval.ms", 5000);
