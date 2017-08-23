@@ -3,6 +3,7 @@ import com.google.common.net.InternetDomainName;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -23,7 +24,9 @@ public class ParserThread implements Runnable{
 
 
         for (int i = 0 ; i < 30;i++){
+            System.out.println("thread"+threadNum+ " started");
             ArrayList<String> linksRecievedFromKafka = queue.take(threadNum);
+            System.out.println(linksRecievedFromKafka.get(0) + "taked from kafka");
             for (int z = 0; z < linksRecievedFromKafka.size(); z++) {
                 String link = linksRecievedFromKafka.get(z);
                 for (int j = 0; j < 2; j++) {

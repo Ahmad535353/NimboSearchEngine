@@ -8,10 +8,9 @@ public class LanguageDetector {
             {
                 return true;
             }
-            else return false;
         } catch (UnsupportedEncodingException e) {
 //            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 }
