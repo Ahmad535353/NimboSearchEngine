@@ -10,15 +10,15 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
-public class Queue {
-    public static ArrayBlockingQueue[] buffers;
+class Queue {
+    static ArrayBlockingQueue buffers;
 
-    public static String take(int threadNumber) throws InterruptedException {
+    static String take(int threadNumber) throws InterruptedException {
         //taking first element of buffer
-        String recordValue = (String) buffers[threadNumber / 10].take();
+        String recordValue = (String) buffers.take();
         return recordValue;
     }
-    public void add(String newUrl , int threadNumber) {
+    static void add(String newUrl, int threadNumber) {
         //key , Integer.toString(i)
         ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-50th-topic", newUrl + ""));
         //return queue.add(newUrl);
@@ -33,11 +33,9 @@ public class Queue {
 //    }
 
 
-    public Queue(int threadNumber) throws InterruptedException {
+    Queue(int threadNumber) throws InterruptedException {
         ProducerApp producerApp = new ProducerApp(threadNumber);
         ConsumerApp consumerApp = new ConsumerApp(threadNumber / 10);
-        buffers = new ArrayBlockingQueue[threadNumber / 10];
-        for (int i = 0; i < threadNumber / 10; ++i)
-            buffers[i] = new ArrayBlockingQueue<String>(10000);
+        buffers = new ArrayBlockingQueue(1000);
     }
 }

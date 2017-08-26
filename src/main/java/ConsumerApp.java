@@ -4,15 +4,14 @@ import org.apache.kafka.clients.consumer.*;
 import java.util.*;
 
 public class ConsumerApp {
-    public static KafkaConsumer<String, String>[] myConsumers;
+    public static KafkaConsumer<String, String> myConsumers;
 
     public ConsumerApp (int threadNumber) {
-        myConsumers = new KafkaConsumer[threadNumber];
 
         // Create the Properties class to instantiate the Consumer with the desired settings:
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", "127.16.16.80:9092");
+        props.put("bootstrap.servers", "176.31.102.177:9092 , 176.31.183.83:9092");
 
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
@@ -39,10 +38,9 @@ public class ConsumerApp {
         topics.add("my-50th-topic");
 
         // Create a KafkaConsumer instance and configure it with properties.
-        for (int i = 0; i < threadNumber; ++i) {
-            myConsumers[i] = new KafkaConsumer<String, String>(props);
-            myConsumers[i].subscribe(topics);
+            myConsumers = new KafkaConsumer<String, String>(props);
+            myConsumers.subscribe(topics);
         }
 
-    }
+
 }
