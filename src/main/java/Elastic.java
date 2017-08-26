@@ -95,6 +95,8 @@ public class Elastic{
                     .startObject()
                     .field("title",title)
                     .field("content", value)
+                    .field("ahmadScore",0)
+                    .field("prscore",0)
                     .endObject());
             client.update(updateRequest).get();
             return 1;
