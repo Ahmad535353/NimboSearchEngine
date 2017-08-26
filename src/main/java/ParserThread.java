@@ -117,8 +117,8 @@ public class ParserThread implements Runnable {
                         if (!storage.exists(s))     // check url with HBase
 //                        if (!Crawler.tempStorage.containsKey(s)) {
                             queue.add(s, threadNumber);
-                        }
-                    storage.addLinks(link, (String[]) links.toArray());    // put urls in HBase
+                    }
+                    storage.addLinks(link, links);    // put urls in HBase
 //                    Crawler.tempStorage.put(link , true);
 //              --------------extract urls-----------------------------
 

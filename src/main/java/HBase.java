@@ -8,6 +8,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class HBase {
     private HashMap<String, String> urlsStorage = new HashMap<String, String>();
@@ -31,7 +32,7 @@ public class HBase {
         }
     }
 
-    public void addLinks(String url, String[] links) {
+    public void addLinks(String url, Set<String> links) {
         boolean flag = false;
         // Instantiating Put class
         // accepts a row name.
