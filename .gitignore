@@ -1,35 +1,9 @@
-# User-specific stuff:
-.idea/**/workspace.xml
-
-# Sensitive or high-churn files:
-.idea/**/uiDesigner.xml
-
-# Gradle:
-.idea/**/libraries
-
-
-# OS generated files:
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE module files:
-NimboProj1.2.iml
-
-# Other IDE files:
-.idea/compiler.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/vcs.xml
-
 # Data And Logs Files
 Logs
 Data
 # target and resources
-src/main/resources/
 src/test/
 target/
+Crawler.iml
+.idea
+/Crawler.iml

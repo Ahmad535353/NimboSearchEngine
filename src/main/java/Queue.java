@@ -8,25 +8,36 @@ import java.util.*;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
 public class Queue {
-    public ArrayList<String> take(int threadNumber){
-        //taking first element of queue
-        ArrayList<String> urls = new ArrayList<>();
-        ConsumerRecords<String, String> records = ConsumerApp.myConsumers[threadNumber].poll(1000);
-        for (ConsumerRecord<String , String> record:records)
-            urls.add(record.value().toString());
-        return urls;
+    public static ArrayBlockingQueue[] buffers;
+
+    public static String take(int threadNumber) throws InterruptedException {
+        //taking first element of buffer
+        String recordValue = (String) buffers[threadNumber / 10].take();
+        return recordValue;
     }
-    public void add(String newUrl , int threadNumber){
+    public void add(String newUrl , int threadNumber) {
         //key , Integer.toString(i)
-        ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-24th-topic", newUrl + ""));
+        ProducerApp.producers[threadNumber].send(new ProducerRecord<String, String>("my-50th-topic", newUrl + ""));
         //return queue.add(newUrl);
     }
-    public Queue(int threadNumber){
-        // ConsumerApp consumerApp = new ConsumerApp();
-        ConsumerApp consumerApp = new ConsumerApp(threadNumber);
+//    public String take(int threadNumber){
+//        //temp take
+//        String url = "";
+//        ConsumerRecords<String, String> records = ConsumerApp.myConsumers[threadNumber].poll(1000);
+//        for (ConsumerRecord<String , String> record:records)
+//            url = record.value().toString();
+//        return url;
+//    }
+
+
+    public Queue(int threadNumber) throws InterruptedException {
         ProducerApp producerApp = new ProducerApp(threadNumber);
-        //queue = new ArrayBlockingQueue<String>(10000);
+        ConsumerApp consumerApp = new ConsumerApp(threadNumber / 10);
+        buffers = new ArrayBlockingQueue[threadNumber / 10];
+        for (int i = 0; i < threadNumber / 10; ++i)
+            buffers[i] = new ArrayBlockingQueue<String>(10000);
     }
 }

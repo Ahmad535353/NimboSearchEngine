@@ -15,13 +15,13 @@ public class Crawler {
     //            **** Cache ****
     static LoadingCache<String,Boolean> cacheLoader;
     //            **** Cache ****
-
     //            **** elastic ****
     static Elastic elasticEngine;
     //            **** elastic ****
+    public static void main(String args[]) throws InterruptedException {
+        int threadNumber = 240;
 
-    public static void main(String args[]){
-        SearchUI su=new SearchUI("176.31.102.177",9300,"176.31.183.83",9300);
+       // SearchUI su = new SearchUI("176.31.102.177",9300,"176.31.183.83",9300);
         cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
                     @Override
@@ -29,11 +29,12 @@ public class Crawler {
                         return Boolean.FALSE;
                     }
                 });
-        Queue queue = new Queue(32);
+        Queue queue = new Queue(threadNumber);
         elasticEngine = new Elastic();
         System.out.println("seed added");
 
         //            **** Q ****
+        System.out.println("seed added");
         queue.add("https://en.wikipedia.org/wiki/Main_Page",0);
         queue.add("https://us.yahoo.com/",1);
         queue.add("https://www.nytimes.com/",2);
@@ -48,14 +49,29 @@ public class Crawler {
 
         long time = System.currentTimeMillis();
         ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
-        for (int i = 0 ; i < 32 ; i++){
+        ArrayList<StoreInQ> storeInQS = new ArrayList<StoreInQ>();
+
+        for (int i = 0 ; i < threadNumber; i++){
             ParserThread parserThread = new ParserThread(cacheLoader, queue, elasticEngine, i);
             threadList.add(parserThread);
         }
-        for (int i = 0 ; i < 32 ; i++){
+
+        for (int i = 0; i < threadNumber / 10; ++i) {
+            StoreInQ storeInQ = new StoreInQ(i);
+            storeInQS.add(storeInQ);
+            storeInQ.start();
+        }
+
+
+        for (int i = 0 ; i < threadNumber ; i++){
             threadList.get(i).joinThread();
         }
+
+        for (int i = 0; i < threadNumber / 10; ++i) {
+            storeInQS.get(i).stop();
+        }
         time = System.currentTimeMillis() - time;
-        //System.out.println(time); /ahmad
+
+        System.out.println(time + "  " + UCount); //result
     }
 }

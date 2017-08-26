@@ -9,7 +9,8 @@ public class ProducerApp {
 
     public ProducerApp(int threadNumber) {
         Properties props = new Properties();
-        props.put("bootstrap.servers", "176.31.102.177:9092, 176.31.183.83:9092");
+        props.put("bootstrap.servers", "127.16.16.80:9092");
+
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 16384);
