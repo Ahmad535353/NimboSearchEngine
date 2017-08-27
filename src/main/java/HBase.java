@@ -31,7 +31,6 @@ public class HBase {
     private static Table createTable(String tableName) {
         // Instantiating Configuration class
         Configuration config = HBaseConfiguration.create();
-
         // Instantiating HTable class
         try {
             return ConnectionFactory.createConnection(config).getTable(TableName.valueOf(tableName));
@@ -77,8 +76,8 @@ public class HBase {
     }
 
     public boolean createRow(String url) {
-        if(!exists(url, table)){
-            add(url, null, table);
+        if(exists(url, table)){
+//            add(url, null, table);
             return true;
         }
         return false;
@@ -87,7 +86,7 @@ public class HBase {
         Table table = createTable(urlTableName);
         boolean result = false;
         if(!exists(url, table)){
-            add(url, null, table);
+//            add(url, null, table);
             result = true;
         }
         try {

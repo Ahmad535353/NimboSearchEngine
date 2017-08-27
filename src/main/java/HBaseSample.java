@@ -7,25 +7,29 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 /**
  * An example of using the {@link BufferedMutator} interface.
+ * We can run this class on our host and connect to
+ * remote host ( host which hbase master is started on it ) ,
+ * then transfer data to hbase .
  */
 public class HBaseSample extends Configured implements Tool {
 
     private final Log LOG = LogFactory.getLog(HBase.class);
-    private final TableName TABLE = TableName.valueOf("dataTable");
-    private final byte[] FAMILY = Bytes.toBytes("cf1");
+    private final TableName TABLE = TableName.valueOf("UrlsAnchors");
+    private final byte[] FAMILY = Bytes.toBytes("Links");
     private final Connection CONN;
     private BufferedMutator mutator;
-    private String mUrl;
-    private HashSet<String> mLinks;
-    private ArrayList<String> mAnchors;
+    private String mRowKey;
+    private ArrayList<Map.Entry<String, String>> mLinks;
     private Table mTable;
 
     public HBaseSample() throws IOException {
@@ -47,61 +51,49 @@ public class HBaseSample extends Configured implements Tool {
         config.set("hbase.zookeeper.property.clientPort", "2181"); //2181
         CONN = ConnectionFactory.createConnection(config);
         mutator = CONN.getBufferedMutator(params);
-    }
-
-    public boolean getTableFromConnection() {
-        try {
-            mTable = CONN.getTable(TABLE);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        mTable = CONN.getTable(TABLE);
     }
 
     @Override
     public int run(String[] args) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+        Put put = new Put(Bytes.toBytes(mRowKey));
         if (mLinks.size() == 0)
             return 0;
-        int j = 0;
-        for (String li : mLinks) {
-            if (li.length() == 0) {
-                j++;
-                continue;
-            }
 
-            String anchorText = mAnchors.get(j);
-            j++;
-            Put p = new Put(Bytes.toBytes(mUrl));
-            p.addColumn(FAMILY, Bytes.toBytes(li), Bytes.toBytes(anchorText));
-            mutator.mutate(p);
+        for (Map.Entry<String, String> e : mLinks) {
+            put.addColumn(FAMILY,
+                    Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
         }
+        mutator.mutate(put);
         mutator.flush();
-//        mutator.close();
         return 0;
     }
 
-    public void add(String url, HashSet<String> links, ArrayList<String> anchors) {
-        mUrl = url;
+    public void add(String rowKey, ArrayList<Map.Entry<String, String>> links) throws Exception {
+        mRowKey = rowKey;
         mLinks = links;
-        mAnchors = anchors;
+        ToolRunner.run(this, null);
     }
 
-    public boolean exists(String url) {
-        Get get = new Get(Bytes.toBytes(url));
-        get.addFamily(FAMILY);
-        Result r = null;
-        try {
-            r = mTable.get(get);
-        } catch (NullPointerException e1) {
-//            e1.printStackTrace();
-            System.err.println("Error in Class HBaseSample in reading data - Null Pointer Exception.");
-            return false;
-        } catch (IOException e) {
-//            e.printStackTrace();
-            System.err.println("Error in Class HBaseSample in reading data - Null Pointer Exception.");
-            return false;
+    public boolean createRow(String rowkey) throws IOException {
+        if (exists(rowkey)) {
+//            Put p = new Put(Bytes.toBytes(rowkey));
+//            p.addColumn(FAMILY, Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
+//            mutator.mutate(p);
+//            mutator.flush();
+            return true;
         }
-        return true;
+        return false;
+    }
+
+    private boolean exists(String rowKey) throws IOException {
+        Get get = new Get(Bytes.toBytes(rowKey));
+        return mTable.exists(get);
+    }
+
+    public void closeConnection() throws IOException {
+        mTable.close();
+        mutator.close();
+        CONN.close();
     }
 }
