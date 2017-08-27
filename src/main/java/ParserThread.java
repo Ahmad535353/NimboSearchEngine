@@ -8,10 +8,7 @@ import javax.swing.text.Element;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class ParserThread implements Runnable {
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
@@ -103,21 +100,22 @@ public class ParserThread implements Runnable {
 
 //              --------------extract urls-----------------------------
                     elements = doc.select("a[href]");
-                    Set<String> links = new HashSet<String>();
 
+                    ArrayList<Map.Entry<String, String>> links = new ArrayList<>();
 
                     for (org.jsoup.nodes.Element element : elements) {
                         String stringLink = element.attr("abs:href");
+                        String anchor = element.attr("abs:href");
                         if (stringLink == null || stringLink.isEmpty() || stringLink.equals(link)) {
                             continue;
                         }
-                        links.add(stringLink);
+                        links.add(new AbstractMap.SimpleEntry<>(stringLink, anchor));
                     }
-                    for (String s:links){
+                    for (Map.Entry<String, String> e:links){
 
-                        if (!storage.exists(s))     // check url with HBase
+                        if (storage.createRow(e.getKey()))     // check url with HBase
 //                        if (!Crawler.tempStorage.containsKey(s)) {
-                            queue.add(s, threadNumber);
+                            queue.add(e.getKey(), threadNumber);
                     }
                     storage.addLinks(link, links);    // put urls in HBase
 //                    Crawler.tempStorage.put(link , true);

@@ -7,75 +7,105 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.Map;
 
 public class HBase {
-    private HashMap<String, String> urlsStorage = new HashMap<String, String>();
-    private Configuration config;
+
+    private final static String urlTableName = "UrlsAnchors";
+    private final static String urlFamilyName = "Links";
+
     private Table table;
 
+    private static Configuration sConfig;
+    private static Table sTable;
+
     public HBase() {
-        this("Ali");
+        this(urlTableName);
     }
 
     public HBase(String tableName) {
+        // Instantiating HTable class
+        table = createTable(tableName);
+    }
+
+    private static Table createTable(String tableName) {
         // Instantiating Configuration class
-        config = HBaseConfiguration.create();
+        Configuration config = HBaseConfiguration.create();
 
         // Instantiating HTable class
-        table = null;
         try {
-            table = ConnectionFactory.createConnection(config).getTable(TableName.valueOf(tableName));
+            return ConnectionFactory.createConnection(config).getTable(TableName.valueOf(tableName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void addLinks(String url, ArrayList<Map.Entry<String, String>> links) {
+        add(url, links, table);
+    }
+    public static void sAddLinks(String url, ArrayList<Map.Entry<String, String>> links) {
+        Table table = createTable(urlTableName);
+        add(url, links, table);
+        try {
+            table.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    public void addLinks(String url, Set<String> links) {
-        boolean flag = false;
+    private static void add(String rowKey, ArrayList<Map.Entry<String, String>> links, Table table) {
+//        boolean flag = false;
         // Instantiating Put class
         // accepts a row name.
-        Put put = new Put(Bytes.toBytes(url));
-        if(url.length() < 1 || url.length() > 500)
-            return;
+        Put put = new Put(Bytes.toBytes(rowKey));
         // adding values using addColumn() method
         // accepts column family name, qualifier/row name ,value
-        for (String link : links) {
-            if (link.length() > 500 || link.length() < 1){
-                continue;
+        if (links != null)
+            for (Map.Entry<String, String> e : links) {
+                put.addColumn(Bytes.toBytes(urlFamilyName),
+                        Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
+    //            flag = true;
             }
-            put.addColumn(Bytes.toBytes("ali"),
-                    Bytes.toBytes(link), Bytes.toBytes("1"));
-            flag = true;
-        }
         // Saving the put Instance to the HTable.
-        if(flag) {
+//        if(flag) {
             try {
                 table.put(put);
-                System.out.println("data inserted");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+//        }
     }
 
-    public boolean exists(String url) {
-        if (url.length() < 1 || url.length() > 500){
-            return true;        // dont add to kafka
+    public boolean createRow(String url) {
+        if(!exists(url, table)){
+            add(url, null, table);
+            return true;
         }
-
-        // Instantiating Get class
-        Get g = new Get(Bytes.toBytes(url));
-
-        // Reading the data
-        Result result = null;
+        return false;
+    }
+    public static boolean sCreateRow(String url) {
+        Table table = createTable(urlTableName);
+        boolean result = false;
+        if(!exists(url, table)){
+            add(url, null, table);
+            result = true;
+        }
         try {
-            result = table.get(g);
+            table.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return result;
+    }
+    private static boolean exists(String rowKey, Table table) {
+        // Instantiating Get class
+        Get get = new Get(Bytes.toBytes(rowKey));
 
-        return !result.isEmpty();
+        try {
+            return table.exists(get);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
