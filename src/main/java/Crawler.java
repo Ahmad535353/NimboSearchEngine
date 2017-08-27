@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Crawler {
-    final static int threadNumber = 10;
+    final static int threadNumber = 64;
     final static int LruTimeLimit = 30;
+    static AtomicInteger counter = new AtomicInteger(0);
+
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
 
     public static HashMap<String,Boolean> tempStorage = new HashMap<>();
@@ -69,6 +71,7 @@ public class Crawler {
             storeInQS.get(i).stop();
         }
         time = System.currentTimeMillis() - time;
+        logger.info("Atomic counter is {} ", counter);
 
     }
 }

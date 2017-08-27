@@ -28,7 +28,7 @@ public class ParserThread implements Runnable {
 
 //        System.out.println("thread started");
 
-        for (int i = 0; i < 30; ) {
+        for (int i = 0;true; ) {
             String link = null;
             try {
                 link = queue.take(threadNumber);
@@ -76,6 +76,7 @@ public class ParserThread implements Runnable {
                         doc = Jsoup.connect(link)
                                 .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                                 .ignoreHttpErrors(true).timeout(1000).get();
+                        Crawler.counter.incrementAndGet();
                     } catch (IOException e) {
                         logger.error("couldn't connect {}. try again.", link);
                         continue;

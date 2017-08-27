@@ -65,6 +65,8 @@ public class Elastic{
                     .startObject()
                     .field("title",title)
                     .field("content", content)
+                    .field("ahmadScore",0)
+                    .field("prscore",0)
                     .endObject();
             response = client.prepareIndex(index, type,url)
                     .setSource(builder)
@@ -93,6 +95,8 @@ public class Elastic{
                     .startObject()
                     .field("title",title)
                     .field("content", value)
+                    .field("ahmadScore",0)
+                    .field("prscore",0)
                     .endObject());
             client.update(updateRequest).get();
             return 1;
