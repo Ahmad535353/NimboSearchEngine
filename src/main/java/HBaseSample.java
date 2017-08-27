@@ -94,10 +94,12 @@ public class HBaseSample extends Configured implements Tool {
         try {
             r = mTable.get(get);
         } catch (NullPointerException e1) {
-            e1.printStackTrace();
+//            e1.printStackTrace();
+            System.err.println("Error in Class HBaseSample in reading data - Null Pointer Exception.");
             return false;
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            System.err.println("Error in Class HBaseSample in reading data - Null Pointer Exception.");
             return false;
         }
         return true;
