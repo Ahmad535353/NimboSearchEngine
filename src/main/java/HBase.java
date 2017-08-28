@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class HBase {
 
-    private final static String urlTableName = "UrlsAnchors";
-    private final static String urlFamilyName = "Links";
+    private final static String urlTableName = "a1";
+    private final static String urlFamilyName = "F1";
 
     private Table table;
 
@@ -43,6 +43,7 @@ public class HBase {
     public void addLinks(String url, ArrayList<Map.Entry<String, String>> links) {
         add(url, links, table);
     }
+
     public static void sAddLinks(String url, ArrayList<Map.Entry<String, String>> links) {
         Table table = createTable(urlTableName);
         add(url, links, table);
@@ -52,41 +53,44 @@ public class HBase {
             e.printStackTrace();
         }
     }
+
     private static void add(String rowKey, ArrayList<Map.Entry<String, String>> links, Table table) {
 //        boolean flag = false;
         // Instantiating Put class
         // accepts a row name.
         Put put = new Put(Bytes.toBytes(rowKey));
+        put.addColumn(Bytes.toBytes(urlFamilyName), Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
         // adding values using addColumn() method
         // accepts column family name, qualifier/row name ,value
         if (links != null)
             for (Map.Entry<String, String> e : links) {
                 put.addColumn(Bytes.toBytes(urlFamilyName),
                         Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
-    //            flag = true;
+                //            flag = true;
             }
         // Saving the put Instance to the HTable.
 //        if(flag) {
-            try {
-                table.put(put);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            table.put(put);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 //        }
     }
 
-    public boolean createRow(String url) {
-        if(exists(url, table)){
-//            add(url, null, table);
-            return true;
+    public boolean createRowAndCheck(String url) {
+        if (!exists(url, table)) {
+            add(url, null, table);
+            return false;
         }
-        return false;
+        return true;
     }
+
     public static boolean sCreateRow(String url) {
         Table table = createTable(urlTableName);
         boolean result = false;
-        if(!exists(url, table)){
-//            add(url, null, table);
+        if (!exists(url, table)) {
+            add(url, null, table);
             result = true;
         }
         try {
@@ -96,6 +100,7 @@ public class HBase {
         }
         return result;
     }
+
     private static boolean exists(String rowKey, Table table) {
         // Instantiating Get class
         Get get = new Get(Bytes.toBytes(rowKey));

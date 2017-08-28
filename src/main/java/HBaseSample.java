@@ -24,8 +24,8 @@ import java.util.concurrent.TimeoutException;
 public class HBaseSample extends Configured implements Tool {
 
     private final Log LOG = LogFactory.getLog(HBase.class);
-    private final TableName TABLE = TableName.valueOf("UrlsAnchors");
-    private final byte[] FAMILY = Bytes.toBytes("Links");
+    private final TableName TABLE = TableName.valueOf("a1");
+    private final byte[] FAMILY = Bytes.toBytes("F1");
     private final Connection CONN;
     private BufferedMutator mutator;
     private String mRowKey;
@@ -75,15 +75,15 @@ public class HBaseSample extends Configured implements Tool {
         ToolRunner.run(this, null);
     }
 
-    public boolean createRow(String rowkey) throws IOException {
-        if (exists(rowkey)) {
-//            Put p = new Put(Bytes.toBytes(rowkey));
-//            p.addColumn(FAMILY, Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
-//            mutator.mutate(p);
-//            mutator.flush();
-            return true;
+    public boolean createRowAndCheck(String rowkey) throws IOException {
+        if (!exists(rowkey)) {
+            Put p = new Put(Bytes.toBytes(rowkey));
+            p.addColumn(FAMILY, Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
+            mutator.mutate(p);
+            mutator.flush();
+            return false;
         }
-        return false;
+        return true;
     }
 
     private boolean exists(String rowKey) throws IOException {
