@@ -5,13 +5,16 @@ import java.text.*;
 import java.util.*;
 
 public class ProducerApp {
-    public static Producer<String, String> producers[];
+    public static Producer<String, String> producer;
 
-    public ProducerApp(int threadNumber) {
+    public static void send (String topic, String value) {
+        producer.send(new ProducerRecord<String, String>(topic, value));
+    }
+
+    static {
         Properties props = new Properties();
-//        props.put("bootstrap.servers", "172.16.16.80:9092");
-        props.put("bootstrap.servers", "176.31.102.177:9092,176.31.183.83:9092");
-
+        props.put("bootstrap.servers", "server1:9092, server2:9092");
+        //props.put("bootstrap.servers", "localhost:9092");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 16384);
@@ -19,8 +22,6 @@ public class ProducerApp {
         props.put("buffer.memory", 33554432);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        producers = new Producer[threadNumber];
-        for (int i = 0 ; i < threadNumber; i++)
-            producers[i] = new KafkaProducer<String, String>(props);
+        producer = new KafkaProducer<String, String>(props);
     }
 }
