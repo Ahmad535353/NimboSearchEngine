@@ -20,27 +20,28 @@ public class ParserThread implements Runnable {
     private Queue queue;
     private Elastic elastic;
     private int threadNumber;
-    private HBase storage = new HBase();
+//    private HBase storage = new HBase();
 
     public void run() {
         org.jsoup.nodes.Document doc = null;
         Elements elements = null;
 
-//        System.out.println("thread started");
+        for (int i = 0; i < 10; ) {
 
-        for (int i = 0; i < 30; ) {
             String link = null;
             try {
-                link = queue.take(threadNumber);
-                if (Crawler.tempStorage.containsKey(link)){
+                link = queue.take();
+                if (Crawler.tempStorage.containsKey(link)) {
                     continue;
                 }
 
                 logger.info("took {} from Q", link);
-//                System.out.println("took from Q");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+
+
             for (int j = 0; j < 2; j++) {
                 URL url;
                 try {
@@ -48,7 +49,7 @@ public class ParserThread implements Runnable {
                 } catch (MalformedURLException e) {
                     logger.error("Url malformed : {}", link);
                     break;
-//                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
 
                 String domain = url.getHost();
@@ -58,7 +59,7 @@ public class ParserThread implements Runnable {
                     logger.warn("couldn't extract '{}' domain.", url);
                     break;
 //                            System.out.println(domain);
-                } catch (IllegalStateException e){
+                } catch (IllegalStateException e) {
                     logger.error(e.getMessage());
                     break;
                 }
@@ -69,7 +70,7 @@ public class ParserThread implements Runnable {
 //              --------------extracted data-------------------------
 
                 if (var == null) {
-                    logger.info("domain {} is allowed.",domain);
+                    logger.info("domain {} is allowed.", domain);
                     cacheLoader.get(domain);
                     logger.info("connecting to {}...", link);
                     try {
@@ -85,7 +86,7 @@ public class ParserThread implements Runnable {
 
                     logger.info("connected to {}", link);
 
-//              --------------extract text and title and language check-----------------------------
+//              --------------extract text and title and language check-------
                     elements = doc.select("p");
                     for (org.jsoup.nodes.Element element : elements) {
                         text.append(element.text());
@@ -98,7 +99,7 @@ public class ParserThread implements Runnable {
                     String title = doc.title();
                     elastic.IndexData(link, txt, title, "myindex", "mytype");
 
-//              --------------extract text-----------------------------
+//              ----------------------extract text-----------------------------
 
 //              --------------extract urls-----------------------------
                     elements = doc.select("a[href]");
@@ -112,34 +113,39 @@ public class ParserThread implements Runnable {
                         }
                         links.add(stringLink);
                     }
-                    for (String s:links){
 
-                        if (!storage.exists(s))     // check url with HBase
+                    for (String s : links) {
+//                        if (!storage.exists(s))     // check url with HBase
 //                        if (!Crawler.tempStorage.containsKey(s)) {
-                            queue.add(s, threadNumber);
-                        }
-                    storage.addLinks(link, (String[]) links.toArray());    // put urls in HBase
-//                    Crawler.tempStorage.put(link , true);
+                        queue.add(Crawler.urlTopic, s);
+                    }
 //              --------------extract urls-----------------------------
 
 
 //              --------------result-----------------------------
-//                        System.out.println("Thread" + threadNumber + " parsed:"); //ahmad
-//                        System.out.println(link);
+                        System.out.println("Thread" + threadNumber + " parsed:"); //ahmad
+                        System.out.println(link);
 //                        System.out.println(domain);
-//                        System.out.println(i);
+                        System.out.println(i);
 //              --------------result-----------------------------
+//                    storage.addLinks(link, (String[]) links.toArray());    // put urls in HBase
+                    Crawler.tempStorage.put(link , true);
                     ++i; // ONE MORE URL FOR THIS THREAD
                 } else {
 //              --------------LRUCache limit---------------------------
-//                      add to kafka
-                    logger.info("domain {} is not allowed.",domain);
-                    queue.add(link, threadNumber);
+//                  add to kafka
+                    logger.info("domain {} is not allowed.", domain);
+                    queue.add(Crawler.urlTopic, link);
 //              --------------LRUCache limit---------------------------
                 }
                 break;
             }
+
+
         }
+
+
+
     }
 
     void joinThread() {

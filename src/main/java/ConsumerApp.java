@@ -1,18 +1,18 @@
 import org.apache.kafka.common.*;
 import org.apache.kafka.clients.consumer.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class ConsumerApp {
-    public static KafkaConsumer<String, String> myConsumers;
+public class ConsumerApp extends Thread {
+    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
+    public static KafkaConsumer<String, String> consumer;
 
-    public ConsumerApp (int threadNumber) {
-
-        // Create the Properties class to instantiate the Consumer with the desired settings:
+    static {
         Properties props = new Properties();
-
-        props.put("bootstrap.servers", "176.31.102.177:9092 , 176.31.183.83:9092");
-
+        props.put("bootstrap.servers", "server1:9092, server2:9092");
+        //props.put("bootstrap.servers", "localhost:9092");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("fetch.min.bytes", 1);
@@ -20,7 +20,7 @@ public class ConsumerApp {
         props.put("heartbeat.interval.ms", 3000);
         props.put("max.partition.fetch.bytes", 1048576);
         props.put("session.timeout.ms", 30000);
-        props.put("auto.offset.reset", "latest");
+        props.put("auto.offset.reset", "earliest");
         props.put("connections.max.idle.ms", 540000);
         props.put("enable.auto.commit", true);
         props.put("exclude.internal.topics", true);
@@ -33,14 +33,35 @@ public class ConsumerApp {
         props.put("reconnect.backoff.ms", 50);
         props.put("retry.backoff.ms", 100);
         props.put("client.id", "");
+        consumer = new KafkaConsumer<String, String>(props);
 
         ArrayList<String> topics = new ArrayList<String>();
-        topics.add("my-50th-topic");
+        topics.add(Crawler.urlTopic);
+        topics.add(Crawler.forParseDataTopic);
+        consumer.subscribe(topics);
+    }
 
-        // Create a KafkaConsumer instance and configure it with properties.
-            myConsumers = new KafkaConsumer<String, String>(props);
-            myConsumers.subscribe(topics);
+
+    public void run () {
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(1000);
+            for (ConsumerRecord<String , String> record:records) {
+                try {
+                    while (Queue.buffer.remainingCapacity() == 0) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Queue.buffer.add(record.value().toString());
+                } catch (IllegalStateException e) {
+                    logger.error("{}", e.getMessage());
+                }
+            }
         }
 
+    }
 
 }
