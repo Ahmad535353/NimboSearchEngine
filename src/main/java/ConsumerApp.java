@@ -37,7 +37,7 @@ public class ConsumerApp extends Thread {
 
         ArrayList<String> topics = new ArrayList<String>();
         topics.add(Crawler.urlTopic);
-        topics.add(Crawler.forParseDataTopic);
+//        topics.add(Crawler.forParseDataTopic);
         consumer.subscribe(topics);
     }
 

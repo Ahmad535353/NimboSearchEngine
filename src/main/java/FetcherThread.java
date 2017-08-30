@@ -16,20 +16,20 @@ public class FetcherThread implements Runnable{
 
     @Override
     public void run() {
-        ArrayBlockingQueue<Long> qTakeTimes = new ArrayBlockingQueue<>(100);
-        ArrayBlockingQueue<Long> connectTimes = new ArrayBlockingQueue<>(100);
+//        ArrayBlockingQueue<Long> qTakeTimes = new ArrayBlockingQueue<>(100);
+//        ArrayBlockingQueue<Long> connectTimes = new ArrayBlockingQueue<>(100);
         String link = null;
         URL url = null;
         org.jsoup.nodes.Document doc = null;
         MyEntry<String,Document> forParseData = new MyEntry<>();
         while (true){
-            long connectTime = 0;
+            long connectTime ;
             long qTakeTime = System.currentTimeMillis();
             link = Crawler.takeUrl();
-            qTakeTime -= System.currentTimeMillis();
-            qTakeTimes.add(qTakeTime);
+            qTakeTime = System.currentTimeMillis() - qTakeTime;
+//            qTakeTimes.add(qTakeTime);
 
-            logger.info("took {} from Q", link);
+            logger.info("took {} from Q in time {}ms", link, qTakeTime);
             if (link == null || link.isEmpty()) {
                 continue;
             }
@@ -68,9 +68,8 @@ public class FetcherThread implements Runnable{
                         doc = Jsoup.connect(link)
                                 .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                                 .ignoreHttpErrors(true).timeout(1000).get();
-                        connectTime -= System.currentTimeMillis();
-                        connectTimes.add(connectTime);
-                        Crawler.counter.incrementAndGet();
+                        connectTime = System.currentTimeMillis() - connectTime ;
+//                        connectTimes.add(connectTime);
                         LruCache.get(domain);
                     } catch (IOException e) {
                         logger.error(" timeout reached or connection refused. couldn't connect to {}.", link);
@@ -78,7 +77,7 @@ public class FetcherThread implements Runnable{
                         continue;
                     }
                     LruCache.get(domain);
-                    logger.info("connected to {}", link);
+                    logger.info("connected in {}ms to {}", connectTime, link);
                     forParseData.setKeyVal(link,doc);
                     Crawler.putForParseData(forParseData);
                     break;

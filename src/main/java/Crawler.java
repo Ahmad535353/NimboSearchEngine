@@ -7,9 +7,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Crawler {
-    final static int threadNumber = 300;
-    final static int LruTimeLimit = 30;
-    static AtomicInteger counter = new AtomicInteger(0);
+    private final static int threadNumber = 30;
+    private final static int LruTimeLimit = 30;
 //    public static HBaseSample storage ;
     public static HBase storage;
 
@@ -18,8 +17,8 @@ public class Crawler {
     private static ArrayBlockingQueue <MyEntry<String ,Document>> fetchedData = new ArrayBlockingQueue<>(100000);
     private static ArrayBlockingQueue<String> urls = new ArrayBlockingQueue<String>(100000);
 
-    final static String urlTopic = "fuckUBitch";
-    final static String forParseDataTopic = "motherFucker";
+    final static String urlTopic = "newUrl";
+//    final static String forParseDataTopic = "new";
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
 
 
@@ -78,7 +77,6 @@ public class Crawler {
             logger.info("thread {} ended.",i);
         }
         time = System.currentTimeMillis() - time;
-        logger.info("Atomic counter is {} ", counter);
 
         consumerApp.stop();
 
