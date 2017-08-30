@@ -48,7 +48,7 @@ public class Elastic{
     // ----------------------------------------------------------
 
     // --------------------- index ------------------------------
-    public static IndexResponse IndexData(String url, String content, String title, String index, String type)
+    public IndexResponse IndexData(String url, String content, String title, String index, String type)
     {
         final byte[] utf8Bytes;
         try {
@@ -65,8 +65,8 @@ public class Elastic{
                     .startObject()
                     .field("title",title)
                     .field("content", content)
-                    .field("ahmadScore",0)
-                    .field("prscore",0)
+                    .field("ahmadScore",0.0)
+                    .field("prscore",0.0)
                     .endObject();
             response = client.prepareIndex(index, type,url)
                     .setSource(builder)

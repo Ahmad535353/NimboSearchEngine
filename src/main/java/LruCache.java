@@ -18,11 +18,11 @@ class LruCache {
                 });
     }
 
-    public Boolean getIfPresent(String domain) {
+    static Boolean getIfPresent(String domain) {
         return cacheLoader.getIfPresent(domain);
     }
 
-    public void get(String domain) {
+    static void get(String domain) {
         try {
             cacheLoader.get(domain);
         } catch (ExecutionException e) {

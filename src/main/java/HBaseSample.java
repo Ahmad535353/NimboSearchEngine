@@ -8,6 +8,8 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,22 +25,22 @@ import java.util.concurrent.TimeoutException;
  */
 public class HBaseSample extends Configured implements Tool {
 
-    private final Log LOG = LogFactory.getLog(HBase.class);
+    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     private final TableName TABLE = TableName.valueOf("a1");
-    private final byte[] FAMILY = Bytes.toBytes("F1");
-    private final Connection CONN;
+    private final byte[] FAMILY = Bytes.toBytes("f1");
+    private Connection CONN;
     private BufferedMutator mutator;
     private String mRowKey;
     private ArrayList<Map.Entry<String, String>> mLinks;
     private Table mTable;
 
-    public HBaseSample() throws IOException {
+    public HBaseSample() {
         /** a callback invoked when an asynchronous write fails. */
         BufferedMutator.ExceptionListener listener = new BufferedMutator.ExceptionListener() {
             @Override
             public void onException(RetriesExhaustedWithDetailsException e, BufferedMutator mutator) {
                 for (int i = 0; i < e.getNumExceptions(); i++) {
-                    LOG.info("Failed to sent put " + e.getRow(i) + ".");
+                    logger.info("Failed to sent put " + e.getRow(i) + ".");
                 }
             }
         };
@@ -49,13 +51,17 @@ public class HBaseSample extends Configured implements Tool {
         Configuration config = HBaseConfiguration.create();
         config.set("hbase.zookeeper.quorum", "server1"); //176.31.102.177
         config.set("hbase.zookeeper.property.clientPort", "2181"); //2181
-        CONN = ConnectionFactory.createConnection(config);
-        mutator = CONN.getBufferedMutator(params);
-        mTable = CONN.getTable(TABLE);
+        try {
+            CONN = ConnectionFactory.createConnection(config);
+            mutator = CONN.getBufferedMutator(params);
+            mTable = CONN.getTable(TABLE);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     @Override
-    public int run(String[] args) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    public int run(String[] args) {
         Put put = new Put(Bytes.toBytes(mRowKey));
         if (mLinks.size() == 0)
             return 0;
@@ -64,23 +70,35 @@ public class HBaseSample extends Configured implements Tool {
             put.addColumn(FAMILY,
                     Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
         }
-        mutator.mutate(put);
-        mutator.flush();
+        try {
+            mutator.mutate(put);
+            mutator.flush();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
         return 0;
     }
 
-    public void add(String rowKey, ArrayList<Map.Entry<String, String>> links) throws Exception {
+    public void AddLinks(String rowKey, ArrayList<Map.Entry<String, String>> links) {
         mRowKey = rowKey;
         mLinks = links;
-        ToolRunner.run(this, null);
+        try {
+            ToolRunner.run(this, null);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 
     public boolean createRowAndCheck(String rowkey) throws IOException {
         if (!exists(rowkey)) {
             Put p = new Put(Bytes.toBytes(rowkey));
             p.addColumn(FAMILY, Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
-            mutator.mutate(p);
-            mutator.flush();
+            try {
+                mutator.mutate(p);
+                mutator.flush();
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
             return false;
         }
         return true;
@@ -91,9 +109,13 @@ public class HBaseSample extends Configured implements Tool {
         return mTable.exists(get);
     }
 
-    public void closeConnection() throws IOException {
-        mTable.close();
-        mutator.close();
-        CONN.close();
+    public void closeConnection() {
+        try {
+            mTable.close();
+            mutator.close();
+            CONN.close();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 public class HBase {
 
     private final static String urlTableName = "a1";
-    private final static String urlFamilyName = "F1";
+    private final static String urlFamilyName = "f1";
 
     private Table table;
 
@@ -44,7 +44,7 @@ public class HBase {
         add(url, links, table);
     }
 
-    public static void sAddLinks(String url, ArrayList<Map.Entry<String, String>> links) {
+    public void AddLinks(String url, ArrayList<Map.Entry<String, String>> links) {
         Table table = createTable(urlTableName);
         add(url, links, table);
         try {
@@ -78,7 +78,7 @@ public class HBase {
 //        }
     }
 
-    public boolean createRowAndCheck(String url) {
+    public boolean createRowAndCheck(String url) throws IOException {
         if (!exists(url, table)) {
             add(url, null, table);
             return false;
@@ -86,7 +86,7 @@ public class HBase {
         return true;
     }
 
-    public static boolean sCreateRow(String url) {
+    public static boolean sCreateRow(String url) throws IOException {
         Table table = createTable(urlTableName);
         boolean result = false;
         if (!exists(url, table)) {
@@ -101,15 +101,11 @@ public class HBase {
         return result;
     }
 
-    private static boolean exists(String rowKey, Table table) {
+    private static boolean exists(String rowKey, Table table) throws IOException {
         // Instantiating Get class
         Get get = new Get(Bytes.toBytes(rowKey));
 
-        try {
-            return table.exists(get);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
+
+        return table.exists(get);
     }
 }
