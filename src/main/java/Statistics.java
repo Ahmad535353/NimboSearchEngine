@@ -39,6 +39,7 @@ public class Statistics implements Runnable{
 
     void logStats(){
         for (int i = 0; i < parserThreadNum; i++) {
+            statLog.info("test");
             Map<String,Long> thread = threadsTimes.get(i);
             statLog.info("thread{} average parse time is : {}",i,thread.get(PARSETIME)/thread.get(PARSENUM));
             statLog.info("thread{} average url put time is : {}",i,thread.get(URLPUTQTIME)/thread.get(URLPUTQNUM));
@@ -84,6 +85,7 @@ public class Statistics implements Runnable{
 
             threadsTimes.add(tmp);
         }
+        System.out.println("test");
     }
 
     public void addFetchTime(Long fetchTime, int threadNum) {

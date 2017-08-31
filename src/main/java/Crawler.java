@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class Crawler {
-    private final static int threadNumber = 30;
+//    private final static int threadNumber = 30;
+    private final static int parserNumber = 60;
+    private final static int fetcherNumber = 10;
     private final static int LruTimeLimit = 30;
     public static HBaseSample storage ;
 //    public static HBase storage;
@@ -23,7 +25,7 @@ public class Crawler {
 
     public static void main(String args[]) throws InterruptedException {
 
-        Statistics.getInstance().setThreadsNums(threadNumber, threadNumber);
+//        Statistics.getInstance().setThreadsNums(threadNumber, threadNumber);
         storage = new HBaseSample();
 //        storage = new HBase();
         elasticEngine = new Elastic();
@@ -60,16 +62,15 @@ public class Crawler {
 
         long time = System.currentTimeMillis();
 
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < parserNumber; i++) {
             new Thread(new Parser(i)).start();
         }
-        for (int i = 0 ; i < 10; i++){
+        for (int i = 0 ; i < fetcherNumber; i++){
             new Thread(new Fetcher(i)).start();
 //            logger.info("thread {} Started.",i);
         }
-        Statistics ourStat = new Statistics();
-        ourStat.setThreadsNums(60,10);
-        new Thread(ourStat).start();
+        Statistics.getInstance().setThreadsNums(parserNumber,fetcherNumber);
+        new Thread(Statistics.getInstance()).start();
 
         ConsumerApp consumerApp = new ConsumerApp();
         consumerApp.start();
