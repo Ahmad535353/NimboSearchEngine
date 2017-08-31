@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Statistics {
+public class Statistics implements Runnable{
 
     private Logger statLog = LoggerFactory.getLogger("statLogger");
     private ArrayList<Map<String, Long>> threadsTimes;
@@ -174,5 +174,18 @@ public class Statistics {
         Long oldNum = threadsTimes.get(threadNum).get("elasticPutNum");
         Long newNum = ++oldNum ;
         threadsTimes.get(threadNum).put("elasticPutNum", newNum);
+    }
+
+    @Override
+    public void run() {
+        statLog.info("at least it works.");
+        while (true){
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.logStats();
+        }
     }
 }

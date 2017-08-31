@@ -60,11 +60,16 @@ public class Crawler {
 
         long time = System.currentTimeMillis();
 
-        for (int i = 0 ; i < threadNumber; i++){
+        for (int i = 0; i < 60; i++) {
             new Thread(new Parser(i)).start();
+        }
+        for (int i = 0 ; i < 10; i++){
             new Thread(new Fetcher(i)).start();
 //            logger.info("thread {} Started.",i);
         }
+        Statistics ourStat = new Statistics();
+        ourStat.setThreadsNums(60,10);
+        new Thread(ourStat).start();
 
         ConsumerApp consumerApp = new ConsumerApp();
         consumerApp.start();
