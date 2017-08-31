@@ -4,28 +4,28 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Crawler {
     private final static int threadNumber = 30;
     private final static int LruTimeLimit = 30;
-//    public static HBaseSample storage ;
-    public static HBase storage;
+    public static HBaseSample storage ;
+//    public static HBase storage;
 
     public static Elastic elasticEngine ;
 
     private static ArrayBlockingQueue <MyEntry<String ,Document>> fetchedData = new ArrayBlockingQueue<>(100000);
     private static ArrayBlockingQueue<String> urls = new ArrayBlockingQueue<String>(100000);
 
-    final static String urlTopic = "newUrl";
+    final static String urlTopic = "newUrl5";
 //    final static String forParseDataTopic = "new";
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
 
 
     public static void main(String args[]) throws InterruptedException {
 
-//        storage = new HBaseSample();
-        storage = new HBase();
+        Statistics.getInstance().setThreadsNums(threadNumber, threadNumber);
+        storage = new HBaseSample();
+//        storage = new HBase();
         elasticEngine = new Elastic();
         Queue queue = new Queue();
         Elastic elasticEngine = new Elastic();
@@ -59,28 +59,26 @@ public class Crawler {
 //            **** Q ****
 
         long time = System.currentTimeMillis();
-        ArrayList<ParserThread> threadList = new ArrayList<ParserThread>();
 
         for (int i = 0 ; i < threadNumber; i++){
-            FetcherThread fetcherThread = new FetcherThread();
-            ParserThread parserThread = new ParserThread();
-            threadList.add(parserThread);
-            logger.info("thread {} Started.",i);
+            new Thread(new Parser(i)).start();
+            new Thread(new Fetcher(i)).start();
+//            logger.info("thread {} Started.",i);
         }
 
         ConsumerApp consumerApp = new ConsumerApp();
         consumerApp.start();
 
 
-        for (int i = 0 ; i < threadNumber ; i++){
-            threadList.get(i).joinThread();
-            logger.info("thread {} ended.",i);
-        }
+//        for (int i = 0 ; i < threadNumber ; i++){
+//            threadList.get(i).joinThread();
+//            logger.info("thread {} ended.",i);
+//        }
         time = System.currentTimeMillis() - time;
 
-        consumerApp.stop();
+//        consumerApp.stop();
 
-        System.out.println(time / 1000 + "\n");
+//        System.out.println(time / 1000 + "\n");
     }
 
     static String takeUrl() {

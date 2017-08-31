@@ -44,7 +44,7 @@ public class HBase {
         add(url, links, table);
     }
 
-    public void AddLinks(String url, ArrayList<Map.Entry<String, String>> links) {
+    public void sAddLinks(String url, ArrayList<Map.Entry<String, String>> links) {
         Table table = createTable(urlTableName);
         add(url, links, table);
         try {

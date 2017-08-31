@@ -7,32 +7,30 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
-public class ParserThread implements Runnable {
+public class Parser implements Runnable {
+    private int threadNum = 0;
+    private Thread thread = new Thread(this);
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
-    private Thread thread;
     private ArrayList<String> failedToCheckInHbase = new ArrayList<>();
-
-    Logger timeLogger = LoggerFactory.getLogger("timesLogger");
 //    private HBase storage = new HBase();
-
+    @Override
     public void run() {
-        Elements elements;
-        MyEntry<String, Document> forParseData;
-        String link;
-        Document doc ;
-        String title ;
-        StringBuilder contentBuilder = new StringBuilder();
-        String content ;
-        String extractedLink;
-        String anchor;
-        MyEntry<String , String> linkAnchor = new MyEntry<>();
-        ArrayList<Map.Entry<String, String>> linksAnchors = new ArrayList<>();
+        logger.info("parser {} Started.",threadNum);
         while (true){
-            long parseTime ;
-            long hbasePutTime ;
-            long elasticPutTime ;
+            Elements elements = new Elements();
+            MyEntry<String, Document> forParseData = new MyEntry<>();
+            String link;
+            Document doc ;
+            String title ;
+            StringBuilder contentBuilder = new StringBuilder();
+            String content ;
+            String extractedLink;
+            String anchor;
+            ArrayList<Map.Entry<String, String>> linksAnchors = new ArrayList<>();
+            long parseTime = 0;
+            long hbasePutTime  = 0;
+            long elasticPutTime = 0;
             long hbaseInquiryTime  = 0;
             long hbaseInquiriesTime  = 0;
             long kafkaPutTime = 0;
@@ -49,6 +47,7 @@ public class ParserThread implements Runnable {
             content = contentBuilder.toString();
             elements = doc.select("a[href]");
             for (Element element : elements){
+                MyEntry<String , String> linkAnchor = new MyEntry<>();
                 extractedLink = element.attr("abs:href");
                 anchor = element.text();
                 if (extractedLink == null || extractedLink.isEmpty() || extractedLink.equals(link)){
@@ -75,33 +74,47 @@ public class ParserThread implements Runnable {
                 linkAnchor.setKeyVal(extractedLink, anchor);
                 linksAnchors.add(linkAnchor);
             }
+            Long avgQPutTime;
+            Long avgHBaseInqTime;
+            if (elements.size() == 0){
+                avgQPutTime = 0L;
+                avgHBaseInqTime = 0L;
+            }else {
+                avgQPutTime = kafkaPutsTime/elements.size();
+                avgHBaseInqTime = hbaseInquiriesTime/elements.size();
+            }
+            Statistics.getInstance().addUrlPutQTime(avgQPutTime,threadNum);
+            Statistics.getInstance().addHbaseCheckTime(avgHBaseInqTime,threadNum);
             parseTime = ((System.currentTimeMillis() - parseTime) - hbaseInquiriesTime) - kafkaPutsTime;
-            logger.info("parsed link in {}ms {}", parseTime, link);
+            Statistics.getInstance().addParseTime(parseTime,threadNum);
+            logger.info("{} parsed link in {}ms {}",threadNum, parseTime, link);
 //            parseTimes.add(parseTime);
 
             hbasePutTime = System.currentTimeMillis();
-            Crawler.storage.AddLinks(link,linksAnchors);
+            Crawler.storage.addLinks(link,linksAnchors);
             hbasePutTime = System.currentTimeMillis() - hbasePutTime;
-            logger.info("data added to hbase in {}ms for {}",hbasePutTime,link);
+            Statistics.getInstance().addHbasePutTime(hbasePutTime,threadNum);
+            logger.info("{} data added to hbase in {}ms for {}",threadNum,hbasePutTime,link);
 //            hbasePutTimes.add(hbasePutTime);
             elasticPutTime = System.currentTimeMillis();
             Crawler.elasticEngine.IndexData(link,content,title,"myindex","mytype");
             elasticPutTime = System.currentTimeMillis() - elasticPutTime;
-            logger.info("data added to elastic in {}ms for {}",elasticPutTime,link);
+            Statistics.getInstance().addElasticPutTime(elasticPutTime,threadNum);
+            logger.info("{} data added to elastic in {}ms for {}",threadNum,threadNum,elasticPutTime,link);
 //            elasticPutTimes.add(elasticPutTime);
         }
     }
 
-    void joinThread() {
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    ParserThread() {
-        thread = new Thread(this);
-        thread.start();
+//    void joinThread() {
+//        try {
+//            thread.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//    }
+    Parser(int threadNum) {
+        this.threadNum = threadNum;
+//        thread = new Thread(this);
+//        thread.start();
     }
 }

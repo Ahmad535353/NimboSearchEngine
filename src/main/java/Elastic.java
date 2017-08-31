@@ -65,8 +65,8 @@ public class Elastic{
                     .startObject()
                     .field("title",title)
                     .field("content", content)
-                    .field("ahmadScore",0.0)
                     .field("prscore",0.0)
+                    .field("anchor","")
                     .endObject();
             response = client.prepareIndex(index, type,url)
                     .setSource(builder)

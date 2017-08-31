@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 public class HBaseSample extends Configured implements Tool {
 
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
-    private final TableName TABLE = TableName.valueOf("a1");
+    private final TableName TABLE = TableName.valueOf("aTest");
     private final byte[] FAMILY = Bytes.toBytes("f1");
     private Connection CONN;
     private BufferedMutator mutator;
@@ -79,7 +79,7 @@ public class HBaseSample extends Configured implements Tool {
         return 0;
     }
 
-    public void AddLinks(String rowKey, ArrayList<Map.Entry<String, String>> links) {
+    public void addLinks(String rowKey, ArrayList<Map.Entry<String, String>> links) {
         mRowKey = rowKey;
         mLinks = links;
         try {

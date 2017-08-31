@@ -10,33 +10,32 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class FetcherThread implements Runnable{
+public class Fetcher implements Runnable{
+    private int threadNum;
     private Thread thread = new Thread(this);
-    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
+    private Logger logger = LoggerFactory.getLogger(Crawler.class);
 
     @Override
     public void run() {
-//        ArrayBlockingQueue<Long> qTakeTimes = new ArrayBlockingQueue<>(100);
-//        ArrayBlockingQueue<Long> connectTimes = new ArrayBlockingQueue<>(100);
-        String link = null;
-        URL url = null;
-        org.jsoup.nodes.Document doc = null;
-        MyEntry<String,Document> forParseData = new MyEntry<>();
+        logger.info("fetcher {} Started.",threadNum);
         while (true){
-            long connectTime ;
+            String link = null;
+            URL url = null;
+            org.jsoup.nodes.Document doc = null;
+            MyEntry<String,Document> forParseData = new MyEntry<>();
+            long connectTime = 0;
             long qTakeTime = System.currentTimeMillis();
             link = Crawler.takeUrl();
             qTakeTime = System.currentTimeMillis() - qTakeTime;
 //            qTakeTimes.add(qTakeTime);
-
-            logger.info("took {} from Q in time {}ms", link, qTakeTime);
+            logger.info("{} took {} from Q in time {}ms",threadNum, link, qTakeTime);
             if (link == null || link.isEmpty()) {
                 continue;
             }
             try {
                 url = new URL(link);
             } catch (MalformedURLException e) {
-                logger.error("Url malformed {}", link);
+                logger.error("{} Url malformed {}",threadNum, link);
                 continue;
             }
 
@@ -44,7 +43,7 @@ public class FetcherThread implements Runnable{
             try {
                 domain = InternetDomainName.from(domain).topPrivateDomain().toString();
             } catch (IllegalArgumentException e) {
-                logger.error("couldn't extract '{}' domain.", url);
+                logger.error("{} couldn't extract '{}' domain.",threadNum, url);
                 continue;
             } catch (IllegalStateException e) {
                 logger.error(e.getMessage());
@@ -55,12 +54,12 @@ public class FetcherThread implements Runnable{
             }
             Boolean var = LruCache.getIfPresent(domain);
             if (var == null){
-                logger.info("domain {} is allowed.", domain);
+                logger.info("{} domain {} is allowed.",threadNum, domain);
                 for (int j = 0; j < 2; j++) {
                     if (j == 0){
-                        logger.info("connecting to (first try) {} ... ", link);
+                        logger.info("{} connecting to (first try) {} ... ",threadNum, link);
                     }else {
-                        logger.info("connecting to (second try) {} ... ", link);
+                        logger.info("{} connecting to (second try) {} ... ",threadNum, link);
                         LruCache.get(domain);
                     }
                     try {
@@ -72,23 +71,34 @@ public class FetcherThread implements Runnable{
 //                        connectTimes.add(connectTime);
                         LruCache.get(domain);
                     } catch (IOException e) {
-                        logger.error(" timeout reached or connection refused. couldn't connect to {}.", link);
+                        logger.error("{} timeout reached or connection refused. couldn't connect to {}.",threadNum, link);
                         logger.error(e.getMessage());
                         continue;
                     }
                     LruCache.get(domain);
-                    logger.info("connected in {}ms to {}", connectTime, link);
+                    logger.info("{} connected in {}ms to {}",threadNum, connectTime, link);
                     forParseData.setKeyVal(link,doc);
                     Crawler.putForParseData(forParseData);
                     break;
                 }
             }else {
-                logger.info("domain {} is not allowed. Back to Queue", domain);
+                logger.info("{} domain {} is not allowed. Back to Queue",threadNum, domain);
                 Crawler.putUrl(link);
             }
+            Statistics.getInstance().addFetchTime(connectTime,threadNum);
+            Statistics.getInstance().addUrlTakeQTime(qTakeTime,threadNum);
         }
     }
-    FetcherThread(){
-        thread.start();
+//    void joinThread() {
+//        try {
+//            thread.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//    }
+    Fetcher(int threadNum){
+        this.threadNum = threadNum;
+//        thread = new Thread(this);
+//        thread.start();
     }
 }
