@@ -25,7 +25,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Crawler</mainClass>
+                            <mainClass>crawler.Crawler</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

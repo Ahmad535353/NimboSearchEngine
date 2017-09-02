@@ -1,25 +1,34 @@
-import com.google.common.collect.Multiset;
+package crawler;
+
 import com.google.common.net.InternetDomainName;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import queue.ProducerApp;
+import storage.HBase;
+import storage.HBaseSample;
+import storage.Storage;
+import utils.Constants;
+import utils.MyEntry;
+import utils.Statistics;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class Fetcher implements Runnable{
     private int threadNum;
     private Thread thread = new Thread(this);
     private Logger logger = LoggerFactory.getLogger(Crawler.class);
+    private Storage storage;
+    private ProducerApp producerApp = new ProducerApp();
 
     Fetcher(int threadNum){
         this.threadNum = threadNum;
-//        thread = new Thread(this);
-//        thread.start();
+        storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
     }
+
     @Override
     public void run() {
         logger.info("fetcher {} Started.",threadNum);
@@ -30,9 +39,23 @@ public class Fetcher implements Runnable{
             MyEntry<String,Document> forParseData = new MyEntry<>();
             long connectTime = 0;
             long qTakeTime = System.currentTimeMillis();
-            link = Crawler.takeUrl();
+            try {
+                link = Crawler.urlQueue.take();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                continue;
+            }
+            try {
+                Boolean hbaseInquiry ;
+                hbaseInquiry = storage.exists(link);
+                if (hbaseInquiry){
+                    continue;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
             qTakeTime = System.currentTimeMillis() - qTakeTime;
-//            qTakeTimes.add(qTakeTime);
             logger.info("{} took {} from Q in time {}ms",threadNum, link, qTakeTime);
             if (link == null || link.isEmpty()) {
                 continue;
@@ -57,15 +80,17 @@ public class Fetcher implements Runnable{
             if (domain == null || domain.isEmpty()) {
                 continue;
             }
-            Boolean var = LruCache.getIfPresent(domain);
+
+            Boolean var = LruCache.getInstance().getIfPresent(domain);
             if (var == null){
+                Statistics.getInstance().addUrlTakeQTime(qTakeTime,threadNum);
                 logger.info("{} domain {} is allowed.",threadNum, domain);
                 for (int j = 0; j < 2; j++) {
                     if (j == 0){
                         logger.info("{} connecting to (first try) {} ... ",threadNum, link);
                     }else {
                         logger.info("{} connecting to (second try) {} ... ",threadNum, link);
-                        LruCache.get(domain);
+                        LruCache.getInstance().get(domain);
                     }
                     try {
                         connectTime = System.currentTimeMillis();
@@ -73,32 +98,26 @@ public class Fetcher implements Runnable{
                                 .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                                 .ignoreHttpErrors(true).timeout(1000).get();
                         connectTime = System.currentTimeMillis() - connectTime ;
-//                        connectTimes.add(connectTime);
-                        LruCache.get(domain);
+                        Statistics.getInstance().addFetchTime(connectTime,threadNum);
+                        LruCache.getInstance().get(domain);
                     } catch (IOException e) {
+                        if (j == 1){
+                            Statistics.getInstance().increamentFailedLink(threadNum);
+                        }
                         logger.error("{} timeout reached or connection refused. couldn't connect to {}.",threadNum, link);
                         logger.error(e.getMessage());
                         continue;
                     }
-                    LruCache.get(domain);
+                    LruCache.getInstance().get(domain);
                     logger.info("{} connected in {}ms to {}",threadNum, connectTime, link);
                     forParseData.setKeyVal(link,doc);
                     Crawler.putForParseData(forParseData);
                     break;
                 }
             }else {
-                logger.info("{} domain {} is not allowed. Back to queue.Queue",threadNum, domain);
-                Crawler.putUrl(link);
+                logger.info("{} domain {} is not allowed. Back to Queue",threadNum, domain);
+                producerApp.send(Constants.URL_TOPIC,link);
             }
-            Statistics.getInstance().addFetchTime(connectTime,threadNum);
-            Statistics.getInstance().addUrlTakeQTime(qTakeTime,threadNum);
         }
     }
-//    void joinThread() {
-//        try {
-//            thread.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

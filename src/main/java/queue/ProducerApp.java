@@ -7,13 +7,9 @@ import java.text.*;
 import java.util.*;
 
 public class ProducerApp {
-    public static Producer<String, String> producer;
+    private Producer<String, String> producer;
 
-    public static void send (String topic, String value) {
-        producer.send(new ProducerRecord<String, String>(topic, value));
-    }
-
-    static {
+    public ProducerApp(){
         Properties props = new Properties();
         props.put("bootstrap.servers", "server1:9092, server2:9092");
         //props.put("bootstrap.servers", "localhost:9092");
@@ -25,5 +21,9 @@ public class ProducerApp {
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         producer = new KafkaProducer<String, String>(props);
+    }
+
+    public void send (String topic, String value) {
+        producer.send(new ProducerRecord<String, String>(topic, value));
     }
 }

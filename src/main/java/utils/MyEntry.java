@@ -1,10 +1,12 @@
+package utils;
+
 import java.util.Map;
 
 public class MyEntry<K, V> implements Map.Entry<K, V> {
     private K key;
     private V value;
 
-//    public MyEntry() {
+//    public utils.MyEntry() {
 //        this.key = key;
 //        this.value = value;
 //    }

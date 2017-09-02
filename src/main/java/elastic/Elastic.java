@@ -1,3 +1,5 @@
+package elastic;
+
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -66,7 +68,11 @@ public class Elastic{
                     .field("title",title)
                     .field("content", content)
                     .field("prscore",0.0)
-                    .field("anchor","")
+                    .field("anchor1","")
+                    .field("anchor2","")
+                    .field("anchor3","")
+                    .field("anchor4","")
+                    .field("anchor5","")
                     .endObject();
             response = client.prepareIndex(index, type,url)
                     .setSource(builder)

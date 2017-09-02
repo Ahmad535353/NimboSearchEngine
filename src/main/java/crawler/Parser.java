@@ -1,10 +1,18 @@
+package crawler;
+
+import crawler.Crawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import queue.ProducerApp;
 import storage.HBase;
+import storage.HBaseSample;
 import storage.Storage;
+import utils.Constants;
+import utils.MyEntry;
+import utils.Statistics;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +24,13 @@ public class Parser implements Runnable {
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     private ArrayList<String> failedToCheckInHbase = new ArrayList<>();
     private Storage storage;
-//    private storage.HBase storage = new storage.HBase();
+    private ProducerApp producerApp = new ProducerApp();
+//    private HBase storage = new HBase();
+Parser(int threadNum) {
+    storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+    this.threadNum = threadNum;
+}
+
     @Override
     public void run() {
         logger.info("parser {} Started.",threadNum);
@@ -61,17 +75,16 @@ public class Parser implements Runnable {
                 try {
                     hbaseInquiry = storage.exists(extractedLink);
                 } catch (IOException e) {
-                    logger.error("Thread {} while checking existence in storage.HBase:\n{}", threadNum, e.getStackTrace());
                     failedToCheckInHbase.add(extractedLink);
+                    logger.error("Thread {} while checking existence in HBase:\n{}", threadNum, e.getStackTrace());
                     continue;
                 }
                 hbaseInquiryTime = System.currentTimeMillis() - hbaseInquiryTime;
                 hbaseInquiriesTime += hbaseInquiryTime;
 //                hbaseInquiryTimes.add(hbaseInquiryTime);
                 if (!hbaseInquiry){
-                    Crawler.putUrl(extractedLink);
                     kafkaPutTime = System.currentTimeMillis();
-                    queue.Queue.add(Crawler.urlTopic,extractedLink);
+                    producerApp.send(Constants.URL_TOPIC,extractedLink);
                     kafkaPutTime = System.currentTimeMillis() - kafkaPutTime;
                 }
                 kafkaPutsTime += kafkaPutTime;
@@ -87,47 +100,26 @@ public class Parser implements Runnable {
                 avgQPutTime = kafkaPutsTime/elements.size();
                 avgHBaseInqTime = hbaseInquiriesTime/elements.size();
             }
+            logger.info("{} inquiry avg time for queue in {}ms {}",threadNum, avgHBaseInqTime, link);
             Statistics.getInstance().addUrlPutQTime(avgQPutTime,threadNum);
             Statistics.getInstance().addHbaseCheckTime(avgHBaseInqTime,threadNum);
             parseTime = ((System.currentTimeMillis() - parseTime) - hbaseInquiriesTime) - kafkaPutsTime;
             Statistics.getInstance().addParseTime(parseTime,threadNum);
             logger.info("{} parsed link in {}ms {}",threadNum, parseTime, link);
-//            parseTimes.add(parseTime);
-
             hbasePutTime = System.currentTimeMillis();
             try {
                 storage.addLinks(link,linksAnchors);
             } catch (IOException e) {
-                logger.error("Thread {} while adding in storage.HBase:\n{}", threadNum, e.getStackTrace());
+                logger.error("Thread {} while adding in HBase:\n{}", threadNum, e.getStackTrace());
             }
             hbasePutTime = System.currentTimeMillis() - hbasePutTime;
             Statistics.getInstance().addHbasePutTime(hbasePutTime,threadNum);
             logger.info("{} data added to hbase in {}ms for {}",threadNum,hbasePutTime,link);
-//            hbasePutTimes.add(hbasePutTime);
             elasticPutTime = System.currentTimeMillis();
             Crawler.elasticEngine.IndexData(link,content,title,"myindex","mytype");
             elasticPutTime = System.currentTimeMillis() - elasticPutTime;
             Statistics.getInstance().addElasticPutTime(elasticPutTime,threadNum);
             logger.info("{} data added to elastic in {}ms for {}",threadNum,threadNum,elasticPutTime,link);
-//            elasticPutTimes.add(elasticPutTime);
         }
-    }
-
-//    void joinThread() {
-//        try {
-//            thread.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
-    Parser(int threadNum) {
-        this.threadNum = threadNum;
-        try {
-            this.storage = new HBase(Crawler.HBASE_TABLE_NAME, Crawler.HBASE_FAMILY_NAME);
-        } catch (IOException e) {
-            logger.error("while instantiating storage.HBase:\n{}", e.getStackTrace());
-        }
-//        thread = new Thread(this);
-//        thread.start();
     }
 }

@@ -1,3 +1,5 @@
+package crawler;
+
 import java.io.UnsupportedEncodingException;
 
 public class LanguageDetector {

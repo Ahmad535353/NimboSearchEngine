@@ -1,5 +1,6 @@
 package queue;
 
+import crawler.Crawler;
 import org.apache.kafka.clients.consumer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,7 @@ import utils.Constants;
 import java.util.*;
 
 public class ConsumerApp extends Thread {
-//    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
+//    private static Logger logger = LoggerFactory.getLogger(crawler.Crawler.class);
     public static KafkaConsumer<String, String> consumer;
 
     static {
@@ -39,9 +40,6 @@ public class ConsumerApp extends Thread {
 
         ArrayList<String> topics = new ArrayList<String>();
         topics.add(Constants.URL_TOPIC);
-
-
-//        topics.add(Crawler.forParseDataTopic);
         consumer.subscribe(topics);
     }
 
@@ -51,17 +49,11 @@ public class ConsumerApp extends Thread {
             ConsumerRecords<String, String> records = consumer.poll(1000);
             for (ConsumerRecord<String , String> record:records) {
                 try {
-                    while (queue.Queue.buffer.remainingCapacity() == 0) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    queue.Queue.buffer.add(record.value().toString());
+                    Crawler.urlQueue.put(record.value().toString());
                 } catch (IllegalStateException e) {
 //                    logger.error("{}", e.getMessage());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
