@@ -143,7 +143,6 @@ public class Statistics implements Runnable{
 
         first = total.get(FAILED_TO_FETCH);
         avgStatLogger.info("failed to connect to {} links\n", first);
-
     }
 
     private void addToTotal(String key, Long value){
@@ -286,7 +285,7 @@ public class Statistics implements Runnable{
         statLog.info("at least it works.");
         while (true){
             try {
-                Thread.sleep(60000);
+                Thread.sleep(Constants.statisticRefreshTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

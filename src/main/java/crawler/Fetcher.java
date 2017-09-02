@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import queue.ProducerApp;
 import storage.HBase;
-import storage.HBaseSample;
+//import storage.HBaseSample;
 import storage.Storage;
 import utils.Constants;
 import utils.MyEntry;
@@ -26,7 +26,11 @@ public class Fetcher implements Runnable{
 
     Fetcher(int threadNum){
         this.threadNum = threadNum;
-        storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+        try {
+            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

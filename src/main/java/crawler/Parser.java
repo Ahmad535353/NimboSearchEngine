@@ -27,7 +27,11 @@ public class Parser implements Runnable {
     private ProducerApp producerApp = new ProducerApp();
 //    private HBase storage = new HBase();
 Parser(int threadNum) {
-    storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+    try {
+        storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
     this.threadNum = threadNum;
 }
 
