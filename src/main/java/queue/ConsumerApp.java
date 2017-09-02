@@ -38,7 +38,8 @@ public class ConsumerApp extends Thread {
         props.put("client.id", "");
         consumer = new KafkaConsumer<String, String>(props);
 
-        ArrayList<String> topics = new ArrayList<String>();
+        ArrayList<String> topics;
+        topics = new ArrayList<String>();
         topics.add(Constants.URL_TOPIC);
         consumer.subscribe(topics);
     }
@@ -47,6 +48,7 @@ public class ConsumerApp extends Thread {
     public void run () {
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(1000);
+            consumer.pause(consumer.assignment());
             for (ConsumerRecord<String , String> record:records) {
                 try {
                     Crawler.urlQueue.put(record.value().toString());
@@ -56,6 +58,7 @@ public class ConsumerApp extends Thread {
                     e.printStackTrace();
                 }
             }
+            consumer.resume(consumer.assignment());
         }
 
     }
