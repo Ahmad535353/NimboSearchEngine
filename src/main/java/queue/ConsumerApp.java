@@ -1,12 +1,14 @@
-import org.apache.kafka.common.*;
+package queue;
+
 import org.apache.kafka.clients.consumer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.Constants;
 
 import java.util.*;
 
 public class ConsumerApp extends Thread {
-    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
+//    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     public static KafkaConsumer<String, String> consumer;
 
     static {
@@ -36,7 +38,9 @@ public class ConsumerApp extends Thread {
         consumer = new KafkaConsumer<String, String>(props);
 
         ArrayList<String> topics = new ArrayList<String>();
-        topics.add(Crawler.urlTopic);
+        topics.add(Constants.URL_TOPIC);
+
+
 //        topics.add(Crawler.forParseDataTopic);
         consumer.subscribe(topics);
     }
@@ -47,7 +51,7 @@ public class ConsumerApp extends Thread {
             ConsumerRecords<String, String> records = consumer.poll(1000);
             for (ConsumerRecord<String , String> record:records) {
                 try {
-                    while (Queue.buffer.remainingCapacity() == 0) {
+                    while (queue.Queue.buffer.remainingCapacity() == 0) {
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -55,9 +59,9 @@ public class ConsumerApp extends Thread {
                         }
                     }
 
-                    Queue.buffer.add(record.value().toString());
+                    queue.Queue.buffer.add(record.value().toString());
                 } catch (IllegalStateException e) {
-                    logger.error("{}", e.getMessage());
+//                    logger.error("{}", e.getMessage());
                 }
             }
         }

@@ -15,6 +15,11 @@ public class Fetcher implements Runnable{
     private Thread thread = new Thread(this);
     private Logger logger = LoggerFactory.getLogger(Crawler.class);
 
+    Fetcher(int threadNum){
+        this.threadNum = threadNum;
+//        thread = new Thread(this);
+//        thread.start();
+    }
     @Override
     public void run() {
         logger.info("fetcher {} Started.",threadNum);
@@ -82,7 +87,7 @@ public class Fetcher implements Runnable{
                     break;
                 }
             }else {
-                logger.info("{} domain {} is not allowed. Back to Queue",threadNum, domain);
+                logger.info("{} domain {} is not allowed. Back to queue.Queue",threadNum, domain);
                 Crawler.putUrl(link);
             }
             Statistics.getInstance().addFetchTime(connectTime,threadNum);
@@ -96,9 +101,4 @@ public class Fetcher implements Runnable{
 //            e.printStackTrace();
 //        }
 //    }
-    Fetcher(int threadNum){
-        this.threadNum = threadNum;
-//        thread = new Thread(this);
-//        thread.start();
-    }
 }

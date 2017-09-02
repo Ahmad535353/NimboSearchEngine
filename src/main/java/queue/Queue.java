@@ -1,3 +1,5 @@
+package queue;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,21 +12,21 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
-class Queue {
+public class Queue {
     static ArrayBlockingQueue buffer;
 
-    static String take() throws InterruptedException {
+    public Queue() throws InterruptedException {
+        buffer = new ArrayBlockingQueue(100000);
+    }
+
+    public static String take() throws InterruptedException {
         //take from buffer
         String recordValue = (String)buffer.take();
         return recordValue;
     }
 
-    static void add(String topic, String value) {
+    public static void add(String topic, String value) {
         //add to kafka
         ProducerApp.send(topic, value);
-    }
-
-    Queue() throws InterruptedException {
-        buffer = new ArrayBlockingQueue(100000);
     }
 }

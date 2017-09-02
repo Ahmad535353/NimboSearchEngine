@@ -3,6 +3,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import storage.HBase;
+import storage.Storage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,7 +15,8 @@ public class Parser implements Runnable {
     private Thread thread = new Thread(this);
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     private ArrayList<String> failedToCheckInHbase = new ArrayList<>();
-//    private HBase storage = new HBase();
+    private Storage storage;
+//    private storage.HBase storage = new storage.HBase();
     @Override
     public void run() {
         logger.info("parser {} Started.",threadNum);
@@ -56,8 +59,9 @@ public class Parser implements Runnable {
                 Boolean hbaseInquiry;
                 hbaseInquiryTime = System.currentTimeMillis();
                 try {
-                    hbaseInquiry = Crawler.storage.createRowAndCheck(extractedLink);
+                    hbaseInquiry = storage.exists(extractedLink);
                 } catch (IOException e) {
+                    logger.error("Thread {} while checking existence in storage.HBase:\n{}", threadNum, e.getStackTrace());
                     failedToCheckInHbase.add(extractedLink);
                     continue;
                 }
@@ -67,7 +71,7 @@ public class Parser implements Runnable {
                 if (!hbaseInquiry){
                     Crawler.putUrl(extractedLink);
                     kafkaPutTime = System.currentTimeMillis();
-                    Queue.add(Crawler.urlTopic,extractedLink);
+                    queue.Queue.add(Crawler.urlTopic,extractedLink);
                     kafkaPutTime = System.currentTimeMillis() - kafkaPutTime;
                 }
                 kafkaPutsTime += kafkaPutTime;
@@ -91,7 +95,11 @@ public class Parser implements Runnable {
 //            parseTimes.add(parseTime);
 
             hbasePutTime = System.currentTimeMillis();
-            Crawler.storage.addLinks(link,linksAnchors);
+            try {
+                storage.addLinks(link,linksAnchors);
+            } catch (IOException e) {
+                logger.error("Thread {} while adding in storage.HBase:\n{}", threadNum, e.getStackTrace());
+            }
             hbasePutTime = System.currentTimeMillis() - hbasePutTime;
             Statistics.getInstance().addHbasePutTime(hbasePutTime,threadNum);
             logger.info("{} data added to hbase in {}ms for {}",threadNum,hbasePutTime,link);
@@ -114,6 +122,11 @@ public class Parser implements Runnable {
 //    }
     Parser(int threadNum) {
         this.threadNum = threadNum;
+        try {
+            this.storage = new HBase(Crawler.HBASE_TABLE_NAME, Crawler.HBASE_FAMILY_NAME);
+        } catch (IOException e) {
+            logger.error("while instantiating storage.HBase:\n{}", e.getStackTrace());
+        }
 //        thread = new Thread(this);
 //        thread.start();
     }

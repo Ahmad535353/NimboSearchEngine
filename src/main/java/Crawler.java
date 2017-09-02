@@ -1,24 +1,22 @@
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import queue.ConsumerApp;
+import queue.Queue;
+import utils.Constants;
 
-import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class Crawler {
 //    private final static int threadNumber = 30;
-    private final static int parserNumber = 60;
-    private final static int fetcherNumber = 10;
-    private final static int LruTimeLimit = 30;
-    public static HBaseSample storage ;
-//    public static HBase storage;
+
+//    public static storage.HBase storage;
 
     public static Elastic elasticEngine ;
 
     private static ArrayBlockingQueue <MyEntry<String ,Document>> fetchedData = new ArrayBlockingQueue<>(100000);
     private static ArrayBlockingQueue<String> urls = new ArrayBlockingQueue<String>(100000);
 
-    final static String urlTopic = "newUrl5";
 //    final static String forParseDataTopic = "new";
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
 
@@ -26,12 +24,11 @@ public class Crawler {
     public static void main(String args[]) throws InterruptedException {
 
 //        Statistics.getInstance().setThreadsNums(threadNumber, threadNumber);
-        storage = new HBaseSample();
-//        storage = new HBase();
+
         elasticEngine = new Elastic();
         Queue queue = new Queue();
         Elastic elasticEngine = new Elastic();
-        LruCache cacheLoader = new LruCache(LruTimeLimit);
+        LruCache cacheLoader = new LruCache(Constants.LRU_TIME_LIMIT);
 
 
 
@@ -42,34 +39,34 @@ public class Crawler {
 //        urls.add("https://www.nytimes.com/");
 //        urls.add("https://www.msn.com/en-us/news");
 //        urls.add("http://www.telegraph.co.uk/news/");
-//        Queue.add("http://www.alexa.com",5);
-//        Queue.add("http://www.apache.org",6);
-//        Queue.add("https://en.wikipedia.org/wiki/Main_Page/World_war_II",7);
-//        Queue.add("http://www.news.google.com",8);
-//        Queue.add("http://www.independent.co.uk",9);
+//        queue.Queue.add("http://www.alexa.com",5);
+//        queue.Queue.add("http://www.apache.org",6);
+//        queue.Queue.add("https://en.wikipedia.org/wiki/Main_Page/World_war_II",7);
+//        queue.Queue.add("http://www.news.google.com",8);
+//        queue.Queue.add("http://www.independent.co.uk",9);
         logger.info("Seed added.");
-        Queue.add(urlTopic,"https://en.wikipedia.org/wiki/Main_Page");
-        Queue.add(urlTopic,"https://us.yahoo.com/");
-        Queue.add(urlTopic,"https://www.nytimes.com/");
-        Queue.add(urlTopic,"https://www.msn.com/en-us/news");
-        Queue.add(urlTopic,"http://www.telegraph.co.uk/news/");
-        Queue.add(urlTopic,"http://www.alexa.com");
-        Queue.add(urlTopic,"http://www.apache.org");
-        Queue.add(urlTopic,"https://en.wikipedia.org/wiki/Main_Page/World_war_II");
-        Queue.add(urlTopic,"http://www.news.google.com");
-        Queue.add(urlTopic,"http://www.independent.co.uk");
+        Queue.add(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page");
+        Queue.add(Constants.URL_TOPIC,"https://us.yahoo.com/");
+        Queue.add(Constants.URL_TOPIC,"https://www.nytimes.com/");
+        Queue.add(Constants.URL_TOPIC,"https://www.msn.com/en-us/news");
+        Queue.add(Constants.URL_TOPIC,"http://www.telegraph.co.uk/news/");
+        Queue.add(Constants.URL_TOPIC,"http://www.alexa.com");
+        Queue.add(Constants.URL_TOPIC,"http://www.apache.org");
+        Queue.add(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page/World_war_II");
+        Queue.add(Constants.URL_TOPIC,"http://www.news.google.com");
+        Queue.add(Constants.URL_TOPIC,"http://www.independent.co.uk");
 //            **** Q ****
 
         long time = System.currentTimeMillis();
 
-        for (int i = 0; i < parserNumber; i++) {
+        for (int i = 0; i < Constants.PARSER_NUMBER; i++) {
             new Thread(new Parser(i)).start();
         }
-        for (int i = 0 ; i < fetcherNumber; i++){
+        for (int i = 0; i < Constants.FETCHER_NUMBER; i++){
             new Thread(new Fetcher(i)).start();
 //            logger.info("thread {} Started.",i);
         }
-        Statistics.getInstance().setThreadsNums(parserNumber,fetcherNumber);
+        Statistics.getInstance().setThreadsNums(Constants.PARSER_NUMBER, Constants.FETCHER_NUMBER);
         new Thread(Statistics.getInstance()).start();
 
         ConsumerApp consumerApp = new ConsumerApp();
@@ -107,7 +104,7 @@ public class Crawler {
         }
     }
     static void putUrl(String url){
-        Queue.add(urlTopic,url);
+        Queue.add(Constants.URL_TOPIC,url);
 //        urls.add(url);
     }
     static void putForParseData(MyEntry<String , Document> htmlData){

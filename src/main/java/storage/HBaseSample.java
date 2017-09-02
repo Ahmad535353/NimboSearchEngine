@@ -1,5 +1,5 @@
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+package storage;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+
+
 
 /**
  * An example of using the {@link BufferedMutator} interface.
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class HBaseSample extends Configured implements Tool {
 
-    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
+//    private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     private final TableName TABLE = TableName.valueOf("aTest");
     private final byte[] FAMILY = Bytes.toBytes("f1");
     private Connection CONN;
@@ -40,7 +40,7 @@ public class HBaseSample extends Configured implements Tool {
             @Override
             public void onException(RetriesExhaustedWithDetailsException e, BufferedMutator mutator) {
                 for (int i = 0; i < e.getNumExceptions(); i++) {
-                    logger.info("Failed to sent put " + e.getRow(i) + ".");
+//                    logger.info("Failed to sent put " + e.getRow(i) + ".");
                 }
             }
         };
@@ -56,7 +56,7 @@ public class HBaseSample extends Configured implements Tool {
             mutator = CONN.getBufferedMutator(params);
             mTable = CONN.getTable(TABLE);
         } catch (IOException e) {
-            logger.error(e.getMessage());
+//            logger.error(e.getMessage());
         }
     }
 
@@ -74,7 +74,7 @@ public class HBaseSample extends Configured implements Tool {
             mutator.mutate(put);
             mutator.flush();
         } catch (IOException e) {
-            logger.error(e.getMessage());
+//            logger.error(e.getMessage());
         }
         return 0;
     }
@@ -85,7 +85,7 @@ public class HBaseSample extends Configured implements Tool {
         try {
             ToolRunner.run(this, null);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+//            logger.error(e.getMessage());
         }
     }
 
@@ -97,7 +97,7 @@ public class HBaseSample extends Configured implements Tool {
                 mutator.mutate(p);
                 mutator.flush();
             } catch (IOException e) {
-                logger.error(e.getMessage());
+//                logger.error(e.getMessage());
             }
             return false;
         }
@@ -115,7 +115,7 @@ public class HBaseSample extends Configured implements Tool {
             mutator.close();
             CONN.close();
         } catch (IOException e) {
-            logger.error(e.getMessage());
+//            logger.error(e.getMessage());
         }
     }
 }

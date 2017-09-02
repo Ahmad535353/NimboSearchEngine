@@ -1,3 +1,5 @@
+package queue;
+
 import org.apache.kafka.clients.KafkaClient;
 import org.apache.kafka.clients.producer.*;
 
