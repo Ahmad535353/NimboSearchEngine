@@ -30,7 +30,7 @@ public class HbaseToElastic {
     private AtomicBoolean atomicBoolean = new AtomicBoolean(true);
     private FileWriter fw;
 
-    public ElasticAdder(String tableName, int numOfThreads, String logPath) throws IOException {
+    public HbaseToElastic(String tableName, int numOfThreads, String logPath) throws IOException {
         this.numOfThreads = numOfThreads;
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.quorum", "server1");
