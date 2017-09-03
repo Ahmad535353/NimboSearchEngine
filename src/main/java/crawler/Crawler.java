@@ -52,18 +52,18 @@ public class Crawler {
 //        Queue.add("https://en.wikipedia.org/wiki/Main_Page/World_war_II",7);
 //        Queue.add("http://www.news.google.com",8);
 //        Queue.add("http://www.independent.co.uk",9);
-        ProducerApp producerApp = new ProducerApp();
+//        ProducerApp producerApp = new ProducerApp();
         logger.info("Seed added.");
-        producerApp.send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page");
-        producerApp.send(Constants.URL_TOPIC,"https://us.yahoo.com/");
-        producerApp.send(Constants.URL_TOPIC,"https://www.nytimes.com/");
-        producerApp.send(Constants.URL_TOPIC,"https://www.msn.com/en-us/news");
-        producerApp.send(Constants.URL_TOPIC,"http://www.telegraph.co.uk/news/");
-        producerApp.send(Constants.URL_TOPIC,"http://www.alexa.com");
-        producerApp.send(Constants.URL_TOPIC,"http://www.apache.org");
-        producerApp.send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page/World_war_II");
-        producerApp.send(Constants.URL_TOPIC,"http://www.news.google.com");
-        producerApp.send(Constants.URL_TOPIC,"http://www.independent.co.uk");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://us.yahoo.com/");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://www.nytimes.com/");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://www.msn.com/en-us/news");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.telegraph.co.uk/news/");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.alexa.com");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.apache.org");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page/World_war_II");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.news.google.com");
+        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.independent.co.uk");
 //            **** Q ****
 
         Statistics.getInstance().setThreadsNums(Constants.FETCHER_NUMBER,Constants.PARSER_NUMBER);

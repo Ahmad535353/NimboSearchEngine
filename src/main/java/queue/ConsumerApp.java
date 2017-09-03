@@ -14,13 +14,13 @@ public class ConsumerApp extends Thread {
 
     static {
         Properties props = new Properties();
-        props.put("bootstrap.servers", "server1:9092, server2:9092");
-        //props.put("bootstrap.servers", "localhost:9092");
+//        props.put("bootstrap.servers", "server1:9092, server2:9092");
+        props.put("bootstrap.servers", "172.16.16.106:9092");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("fetch.min.bytes", 1);
         props.put("group.id", "test");
-        props.put("heartbeat.interval.ms", 3000);
+        props.put("heartbeat.interval.ms", 15000);
         props.put("max.partition.fetch.bytes", 1048576);
         props.put("session.timeout.ms", 30000);
         props.put("auto.offset.reset", "earliest");

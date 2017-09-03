@@ -1,6 +1,7 @@
 package crawler;
 
 import com.google.common.net.InternetDomainName;
+import org.apache.kafka.clients.producer.Producer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -8,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import queue.ProducerApp;
 import storage.HBase;
 //import storage.HBaseSample;
+import storage.HBaseSample;
 import storage.Storage;
 import utils.Constants;
 import utils.MyEntry;
 import utils.Statistics;
+
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -22,15 +25,16 @@ public class Fetcher implements Runnable{
     private Thread thread = new Thread(this);
     private Logger logger = LoggerFactory.getLogger(Crawler.class);
     private Storage storage;
-    private ProducerApp producerApp = new ProducerApp();
+//    private ProducerApp producerApp = new ProducerApp();
 
     Fetcher(int threadNum){
         this.threadNum = threadNum;
-        try {
-            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
     }
 
     @Override
@@ -49,6 +53,7 @@ public class Fetcher implements Runnable{
                 e.printStackTrace();
                 continue;
             }
+            qTakeTime = System.currentTimeMillis() - qTakeTime;
             try {
                 Boolean hbaseInquiry ;
                 hbaseInquiry = storage.exists(link);
@@ -59,7 +64,6 @@ public class Fetcher implements Runnable{
                 e.printStackTrace();
 
             }
-            qTakeTime = System.currentTimeMillis() - qTakeTime;
             logger.info("{} took {} from Q in time {}ms",threadNum, link, qTakeTime);
             if (link == null || link.isEmpty()) {
                 continue;
@@ -120,7 +124,7 @@ public class Fetcher implements Runnable{
                 }
             }else {
                 logger.info("{} domain {} is not allowed. Back to Queue",threadNum, domain);
-                producerApp.send(Constants.URL_TOPIC,link);
+                ProducerApp.getMyInstance().send(Constants.URL_TOPIC,link);
             }
         }
     }

@@ -24,14 +24,15 @@ public class Parser implements Runnable {
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     private ArrayList<String> failedToCheckInHbase = new ArrayList<>();
     private Storage storage;
-    private ProducerApp producerApp = new ProducerApp();
+//    private ProducerApp producerApp = new ProducerApp();
 //    private HBase storage = new HBase();
 Parser(int threadNum) {
-    try {
-        storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
+//    try {
+//        storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+//    } catch (IOException e) {
+//        e.printStackTrace();
+//    }
+    storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_TABLE_NAME);
     this.threadNum = threadNum;
 }
 
@@ -88,7 +89,7 @@ Parser(int threadNum) {
 //                hbaseInquiryTimes.add(hbaseInquiryTime);
                 if (!hbaseInquiry){
                     kafkaPutTime = System.currentTimeMillis();
-                    producerApp.send(Constants.URL_TOPIC,extractedLink);
+                    ProducerApp.getMyInstance().send(Constants.URL_TOPIC,extractedLink);
                     kafkaPutTime = System.currentTimeMillis() - kafkaPutTime;
                 }
                 kafkaPutsTime += kafkaPutTime;

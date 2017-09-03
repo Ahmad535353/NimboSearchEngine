@@ -13,6 +13,8 @@ public class Statistics implements Runnable{
     private Logger avgStatLogger = LoggerFactory.getLogger("avgStatLogger");
     private ArrayList<Map<String, Long>> threadsTimes;
     private ConcurrentHashMap<String,Long> total;
+    private ConcurrentHashMap<String,Long> periodic;
+
     private int fetcherThreadNum;
     private int parserThreadNum;
     private static Statistics myStat = null;
@@ -60,30 +62,40 @@ public class Statistics implements Runnable{
             statLog.info("thread{} average parse time is : {}",i,first/second);
             addToTotal(PARSE_TIME,first);
             addToTotal(PARSE_NUM,second);
+            periodic.put(PARSE_TIME,first);
+            periodic.put(PARSE_NUM,second);
 
             first = thread.get(URL_PUT_Q_TIME);
             second = thread.get(URL_PUT_Q_NUM);
             statLog.info("thread{} average url put time is : {}",i,first/second);
             addToTotal(URL_PUT_Q_TIME,first);
             addToTotal(URL_PUT_Q_NUM,second);
+            periodic.put(URL_PUT_Q_TIME,first);
+            periodic.put(URL_PUT_Q_NUM,second);
 
             first = thread.get(HBASE_CHECK_TIME);
             second = thread.get(HBASE_CHECK_NUM);
             statLog.info("thread{} average Hbase check time is : {}",i,first/second);
             addToTotal(HBASE_CHECK_TIME,first);
             addToTotal(HBASE_CHECK_NUM,second);
+            periodic.put(HBASE_CHECK_TIME,first);
+            periodic.put(HBASE_CHECK_NUM,second);
 
             first = thread.get(HBASE_PUT_TIME);
             second = thread.get(HBASE_PUT_NUM);
             statLog.info("thread{} average Hbase put time is : {}",i,first/second);
             addToTotal(HBASE_PUT_TIME,first);
             addToTotal(HBASE_PUT_NUM,second);
+            periodic.put(HBASE_PUT_TIME,first);
+            periodic.put(HBASE_PUT_NUM,second);
 
             first = thread.get(ELASTIC_PUT_TIME);
             second = thread.get(ELASTIC_PUT_NUM);
             statLog.info("thread{} average elastic put time is : {}\n",i,first/second);
             addToTotal(ELASTIC_PUT_TIME,first);
             addToTotal(ELASTIC_PUT_NUM,second);
+            periodic.put(ELASTIC_PUT_TIME,first);
+            periodic.put(ELASTIC_PUT_NUM,second);
         }
         for (int i = 0; i < fetcherThreadNum; i++) {
             Map<String,Long> thread = threadsTimes.get(i);
@@ -93,6 +105,8 @@ public class Statistics implements Runnable{
             statLog.info("thread{} average fetch time is : {}",i,first/second);
             addToTotal(FETCH_TIME,first);
             addToTotal(FETCH_NUM,second);
+            periodic.put(FETCH_TIME,first);
+            periodic.put(FETCH_NUM,second);
 
             first = thread.get(URL_TAKE_Q_TIME);
             second = thread.get(URL_TAKE_Q_NUM);
@@ -100,10 +114,13 @@ public class Statistics implements Runnable{
             statLog.info("thread{} average url take time is : {}",i,first/second);
             addToTotal(URL_TAKE_Q_TIME,first);
             addToTotal(URL_TAKE_Q_NUM,second);
+            periodic.put(URL_TAKE_Q_TIME,first);
+            periodic.put(URL_TAKE_Q_NUM,second);
 
             first = thread.get(FAILED_TO_FETCH);
             statLog.info("thread{} had {} failed connection\n",i,first);
             addToTotal(FAILED_TO_FETCH,first);
+            periodic.put(FAILED_TO_FETCH,first);
         }
 
         first = total.get(PARSE_NUM);
@@ -149,10 +166,15 @@ public class Statistics implements Runnable{
         if (!total.containsKey(key)){
             total.put(key,value);
         }
-        Long oldVal = total.get(key);
-        Long newVal = oldVal+value;
-        total.put(key,newVal);
+        else {
+            Long oldVal = total.get(key);
+            Long newVal = oldVal+value;
+            total.put(key,newVal);
+        }
     }
+//    private void addToPeriodic(String key, Long value){
+//        periodic.put(key,value);
+//    }
 
     public void setThreadsNums(int fetcherThreadNum, int parserThreadNum){
         this.fetcherThreadNum = fetcherThreadNum;
