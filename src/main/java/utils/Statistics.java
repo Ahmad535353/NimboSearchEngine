@@ -11,9 +11,10 @@ public class Statistics implements Runnable{
 
     private Logger statLog = LoggerFactory.getLogger("statLogger");
     private Logger avgStatLogger = LoggerFactory.getLogger("avgStatLogger");
+    private Logger periodLogger = LoggerFactory.getLogger("periodLogger");
     private ArrayList<Map<String, Long>> threadsTimes;
-    private ConcurrentHashMap<String,Long> total;
-    private ConcurrentHashMap<String,Long> periodic;
+    private ConcurrentHashMap<String,Long> newTotal;
+    private ConcurrentHashMap<String,Long> oldTotal;
 
     private int fetcherThreadNum;
     private int parserThreadNum;
@@ -39,7 +40,7 @@ public class Statistics implements Runnable{
     private final String ELASTIC_PUT_NUM = "elasticPutNum";
 
 
-    public static Statistics getInstance(){
+    public synchronized static Statistics getInstance(){
         if (myStat == null){
             myStat = new Statistics();
         }
@@ -51,7 +52,7 @@ public class Statistics implements Runnable{
 //        long totalParseNum = 0;
 //        long urlPutTime = 0;
 //        long urlPutNum = 0;
-        total = new ConcurrentHashMap<>();
+        newTotal = new ConcurrentHashMap<>();
         long first;
         long second;
         for (int i = 0; i < parserThreadNum; i++) {
@@ -59,43 +60,38 @@ public class Statistics implements Runnable{
             Map<String,Long> thread = threadsTimes.get(i);
             first = thread.get(PARSE_TIME);
             second = thread.get(PARSE_NUM);
+            statLog.info("thread{} parse time is {} and parse num {}",i,first,second);
             statLog.info("thread{} average parse time is : {}",i,first/second);
             addToTotal(PARSE_TIME,first);
             addToTotal(PARSE_NUM,second);
-            periodic.put(PARSE_TIME,first);
-            periodic.put(PARSE_NUM,second);
 
             first = thread.get(URL_PUT_Q_TIME);
             second = thread.get(URL_PUT_Q_NUM);
+            statLog.info("thread{} url put time is {} and num is {}",i,first,second);
             statLog.info("thread{} average url put time is : {}",i,first/second);
             addToTotal(URL_PUT_Q_TIME,first);
             addToTotal(URL_PUT_Q_NUM,second);
-            periodic.put(URL_PUT_Q_TIME,first);
-            periodic.put(URL_PUT_Q_NUM,second);
 
             first = thread.get(HBASE_CHECK_TIME);
             second = thread.get(HBASE_CHECK_NUM);
+            statLog.info("thread{} HBase check time is {} and num is {}",i,first,second);
             statLog.info("thread{} average Hbase check time is : {}",i,first/second);
             addToTotal(HBASE_CHECK_TIME,first);
             addToTotal(HBASE_CHECK_NUM,second);
-            periodic.put(HBASE_CHECK_TIME,first);
-            periodic.put(HBASE_CHECK_NUM,second);
 
             first = thread.get(HBASE_PUT_TIME);
             second = thread.get(HBASE_PUT_NUM);
+            statLog.info("thread{} HBase put time is {} and num is {}",i,first,second);
             statLog.info("thread{} average Hbase put time is : {}",i,first/second);
             addToTotal(HBASE_PUT_TIME,first);
             addToTotal(HBASE_PUT_NUM,second);
-            periodic.put(HBASE_PUT_TIME,first);
-            periodic.put(HBASE_PUT_NUM,second);
 
             first = thread.get(ELASTIC_PUT_TIME);
             second = thread.get(ELASTIC_PUT_NUM);
+            statLog.info("thread{} elastic put time is {} and num is {}",i,first,second);
             statLog.info("thread{} average elastic put time is : {}\n",i,first/second);
             addToTotal(ELASTIC_PUT_TIME,first);
             addToTotal(ELASTIC_PUT_NUM,second);
-            periodic.put(ELASTIC_PUT_TIME,first);
-            periodic.put(ELASTIC_PUT_NUM,second);
         }
         for (int i = 0; i < fetcherThreadNum; i++) {
             Map<String,Long> thread = threadsTimes.get(i);
@@ -105,8 +101,6 @@ public class Statistics implements Runnable{
             statLog.info("thread{} average fetch time is : {}",i,first/second);
             addToTotal(FETCH_TIME,first);
             addToTotal(FETCH_NUM,second);
-            periodic.put(FETCH_TIME,first);
-            periodic.put(FETCH_NUM,second);
 
             first = thread.get(URL_TAKE_Q_TIME);
             second = thread.get(URL_TAKE_Q_NUM);
@@ -114,62 +108,102 @@ public class Statistics implements Runnable{
             statLog.info("thread{} average url take time is : {}",i,first/second);
             addToTotal(URL_TAKE_Q_TIME,first);
             addToTotal(URL_TAKE_Q_NUM,second);
-            periodic.put(URL_TAKE_Q_TIME,first);
-            periodic.put(URL_TAKE_Q_NUM,second);
 
             first = thread.get(FAILED_TO_FETCH);
             statLog.info("thread{} had {} failed connection\n",i,first);
             addToTotal(FAILED_TO_FETCH,first);
-            periodic.put(FAILED_TO_FETCH,first);
         }
 
-        first = total.get(PARSE_NUM);
-        second =  total.get(PARSE_TIME);
+        first = newTotal.get(PARSE_NUM);
+        second =  newTotal.get(PARSE_TIME);
         avgStatLogger.info("{} links parsed in {}ms", first,second);
         avgStatLogger.info("average links/sec is {}", second/first);
 
-        first = total.get(URL_PUT_Q_NUM);
-        second = total.get(URL_PUT_Q_TIME);
+
+        first = newTotal.get(URL_PUT_Q_NUM);
+        second = newTotal.get(URL_PUT_Q_TIME);
         avgStatLogger.info("{} links added in Kafka in {}ms", first,second);
         avgStatLogger.info("average links/sec added in Kafka is {}", second/first);
 
-        first = total.get(HBASE_CHECK_NUM);
-        second = total.get(HBASE_CHECK_TIME);
+        first = newTotal.get(HBASE_CHECK_NUM);
+        second = newTotal.get(HBASE_CHECK_TIME);
         avgStatLogger.info("{} links checked with HBase in {}ms", first,second);
         avgStatLogger.info("average links/sec checked with HBase is {}", second/first);
 
-        first = total.get(HBASE_PUT_NUM);
-        second = total.get(HBASE_PUT_TIME);
+        first = newTotal.get(HBASE_PUT_NUM);
+        second = newTotal.get(HBASE_PUT_TIME);
         avgStatLogger.info("{} links added to HBase in {}ms", first,second);
         avgStatLogger.info("average links/sec added to HBase is {}", second/first);
 
-        first = total.get(ELASTIC_PUT_NUM);
-        second = total.get(ELASTIC_PUT_TIME);
-        avgStatLogger.info("{} links checked added to Elastic in {}ms", first,second);
+        first = newTotal.get(ELASTIC_PUT_NUM);
+        second = newTotal.get(ELASTIC_PUT_TIME);
+        avgStatLogger.info("{} links added to Elastic in {}ms", first,second);
         avgStatLogger.info("average links/sec added to Elastic is {}", second/first);
 
-        first = total.get(FETCH_NUM);
-        second = total.get(FETCH_TIME);
+        first = newTotal.get(FETCH_NUM);
+        second = newTotal.get(FETCH_TIME);
         avgStatLogger.info("{} links fetched in {}ms", first,second);
         avgStatLogger.info("average fetch time is {}", second/first);
 
-        first = total.get(URL_TAKE_Q_NUM);
-        second = total.get(URL_TAKE_Q_TIME);
+        first = newTotal.get(URL_TAKE_Q_NUM);
+        second = newTotal.get(URL_TAKE_Q_TIME);
         avgStatLogger.info("{} links taked from buffer in {}ms", first,second);
         avgStatLogger.info("average buffer time is {}", second/first);
 
-        first = total.get(FAILED_TO_FETCH);
+        first = newTotal.get(FAILED_TO_FETCH);
         avgStatLogger.info("failed to connect to {} links\n", first);
+
+        if (oldTotal != null){
+            first = newTotal.get(PARSE_NUM) - oldTotal.get(PARSE_NUM);
+            second =  newTotal.get(PARSE_TIME) - oldTotal.get(PARSE_TIME);
+            periodLogger.info("{} links parsed in {}ms", first,second);
+            periodLogger.info("average links/sec is {}", second/first);
+
+
+            first = newTotal.get(URL_PUT_Q_NUM) - oldTotal.get(URL_PUT_Q_NUM);
+            second = newTotal.get(URL_PUT_Q_TIME) - oldTotal.get(URL_PUT_Q_TIME);
+            periodLogger.info("{} links added in Kafka in {}ms", first,second);
+            periodLogger.info("average links/sec added in Kafka is {}", second/first);
+
+            first = newTotal.get(HBASE_CHECK_NUM) - oldTotal.get(HBASE_CHECK_NUM);
+            second = newTotal.get(HBASE_CHECK_TIME) - oldTotal.get(HBASE_CHECK_TIME);
+            periodLogger.info("{} links checked with HBase in {}ms", first,second);
+            periodLogger.info("average links/sec checked with HBase is {}", second/first);
+
+            first = newTotal.get(HBASE_PUT_NUM) - oldTotal.get(HBASE_PUT_NUM);
+            second = newTotal.get(HBASE_PUT_TIME) - oldTotal.get(HBASE_PUT_TIME);
+            periodLogger.info("{} links added to HBase in {}ms", first,second);
+            periodLogger.info("average links/sec added to HBase is {}", second/first);
+
+            first = newTotal.get(ELASTIC_PUT_NUM) - oldTotal.get(ELASTIC_PUT_NUM);
+            second = newTotal.get(ELASTIC_PUT_TIME) - oldTotal.get(ELASTIC_PUT_TIME);
+            periodLogger.info("{} links added to Elastic in {}ms", first,second);
+            periodLogger.info("average links/sec added to Elastic is {}", second/first);
+
+            first = newTotal.get(FETCH_NUM) - oldTotal.get(FETCH_NUM);
+            second = newTotal.get(FETCH_TIME) - oldTotal.get(FETCH_TIME);
+            periodLogger.info("{} links fetched in {}ms", first,second);
+            periodLogger.info("average fetch time is {}", second/first);
+
+            first = newTotal.get(URL_TAKE_Q_NUM) - oldTotal.get(URL_TAKE_Q_NUM);
+            second = newTotal.get(URL_TAKE_Q_TIME) - oldTotal.get(URL_TAKE_Q_TIME);
+            periodLogger.info("{} links taked from buffer in {}ms", first,second);
+            periodLogger.info("average buffer time is {}", second/first);
+
+            first = newTotal.get(FAILED_TO_FETCH) - oldTotal.get(FAILED_TO_FETCH);
+            periodLogger.info("failed to connect to {} links\n", first);
+        }
+        oldTotal = newTotal;
     }
 
     private void addToTotal(String key, Long value){
-        if (!total.containsKey(key)){
-            total.put(key,value);
+        if (!newTotal.containsKey(key)){
+            newTotal.put(key,value);
         }
         else {
-            Long oldVal = total.get(key);
+            Long oldVal = newTotal.get(key);
             Long newVal = oldVal+value;
-            total.put(key,newVal);
+            newTotal.put(key,newVal);
         }
     }
 //    private void addToPeriodic(String key, Long value){
@@ -208,7 +242,7 @@ public class Statistics implements Runnable{
         System.out.println("test");
     }
 
-    public void increamentFailedLink(int threadNum){
+    public void incrementFailedLink(int threadNum){
         Long newNum = threadsTimes.get(threadNum).get(FAILED_TO_FETCH) + 1;
         threadsTimes.get(threadNum).put(FAILED_TO_FETCH, newNum);
     }

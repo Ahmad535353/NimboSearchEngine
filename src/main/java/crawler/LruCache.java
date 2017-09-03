@@ -12,7 +12,7 @@ class LruCache {
     private LoadingCache<String,Boolean> cacheLoader;
     private static LruCache myCache;
 
-    public static LruCache getInstance(){
+    public synchronized static LruCache getInstance(){
         if (myCache == null){
             myCache = new LruCache();
         }

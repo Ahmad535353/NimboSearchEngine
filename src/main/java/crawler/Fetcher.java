@@ -1,7 +1,6 @@
 package crawler;
 
 import com.google.common.net.InternetDomainName;
-import org.apache.kafka.clients.producer.Producer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -9,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import queue.ProducerApp;
 import storage.HBase;
 //import storage.HBaseSample;
-import storage.HBaseSample;
 import storage.Storage;
 import utils.Constants;
 import utils.MyEntry;
@@ -24,17 +22,18 @@ public class Fetcher implements Runnable{
     private int threadNum;
     private Thread thread = new Thread(this);
     private Logger logger = LoggerFactory.getLogger(Crawler.class);
+
     private Storage storage;
 //    private ProducerApp producerApp = new ProducerApp();
 
     Fetcher(int threadNum){
         this.threadNum = threadNum;
-//        try {
-//            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+        try {
+            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
     }
 
     @Override
@@ -54,16 +53,7 @@ public class Fetcher implements Runnable{
                 continue;
             }
             qTakeTime = System.currentTimeMillis() - qTakeTime;
-            try {
-                Boolean hbaseInquiry ;
-                hbaseInquiry = storage.exists(link);
-                if (hbaseInquiry){
-                    continue;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
 
-            }
             logger.info("{} took {} from Q in time {}ms",threadNum, link, qTakeTime);
             if (link == null || link.isEmpty()) {
                 continue;
@@ -91,6 +81,16 @@ public class Fetcher implements Runnable{
 
             Boolean var = LruCache.getInstance().getIfPresent(domain);
             if (var == null){
+                try {
+                    Boolean hbaseInquiry ;
+                    hbaseInquiry = storage.exists(link);
+                    if (hbaseInquiry){
+                        continue;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                }
                 Statistics.getInstance().addUrlTakeQTime(qTakeTime,threadNum);
                 logger.info("{} domain {} is allowed.",threadNum, domain);
                 for (int j = 0; j < 2; j++) {
@@ -110,7 +110,7 @@ public class Fetcher implements Runnable{
                         LruCache.getInstance().get(domain);
                     } catch (IOException e) {
                         if (j == 1){
-                            Statistics.getInstance().increamentFailedLink(threadNum);
+                            Statistics.getInstance().incrementFailedLink(threadNum);
                         }
                         logger.error("{} timeout reached or connection refused. couldn't connect to {}.",threadNum, link);
                         logger.error(e.getMessage());
