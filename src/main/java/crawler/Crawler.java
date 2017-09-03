@@ -21,8 +21,8 @@ public class Crawler {
 //    public static HBase storage;
 
     public static Elastic elasticEngine ;
-    public static ArrayBlockingQueue<String> urlQueue = new ArrayBlockingQueue<String>(100000);
-    private static ArrayBlockingQueue <MyEntry<String ,Document>> fetchedData = new ArrayBlockingQueue<>(100000);
+    public static ArrayBlockingQueue<String> urlQueue = new ArrayBlockingQueue<String>(10000);
+    private static ArrayBlockingQueue <MyEntry<String ,Document>> fetchedData = new ArrayBlockingQueue<>(1000);
 
 //    final static String urlTopic = "newUrl5";
 //    final static String forParseDataTopic = "new";
@@ -118,6 +118,10 @@ public class Crawler {
 ////        urls.add(url);
 //    }
     static void putForParseData(MyEntry<String , Document> htmlData){
-        fetchedData.add(htmlData);
+        try {
+            fetchedData.put(htmlData);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

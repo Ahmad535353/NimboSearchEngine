@@ -19,8 +19,8 @@ public class ProducerApp {
 
     private ProducerApp(){
         Properties props = new Properties();
-//        props.put("bootstrap.servers", "server1:9092, server2:9092");
-        props.put("bootstrap.servers", "172.16.16.106:9092");
+        props.put("bootstrap.servers", "server1:9092, server2:9092");
+//        props.put("bootstrap.servers", "172.16.16.106:9092");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 16384);
