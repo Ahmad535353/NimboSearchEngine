@@ -42,9 +42,12 @@ public class Fetcher implements Runnable{
             try {
                 link = takeUrl();
             } catch (InterruptedException e) {
-                logger.error("Fetcher {} couldn't take link from queue\n{}.",threadNum, e.getStackTrace());
+                logger.error("Fetcher {} couldn't take link from queue\n{}\n{}.",threadNum, e.toString(), e.getStackTrace());
                 continue;
             }
+
+            System.out.println("\nurls queue is " + Crawler.urlQueue.size() + "\n" );
+
             if (link == null || link.isEmpty()) {
                 logger.error("Fetcher {} gets null or empty link from queue\n.",threadNum);
                 continue;
@@ -54,7 +57,7 @@ public class Fetcher implements Runnable{
             try {
                 domain = getDomainIfLruAllowed(link);
             } catch (Exception e){
-                logger.error("Fetcher {} couldn't extract domain {}\n{}.",threadNum, link, e.getStackTrace());
+                logger.error("Fetcher {} couldn't extract domain {}\n{}\n{}.",threadNum, link, e.toString(),e.getStackTrace());
             }
             if (domain == null){
                 ProducerApp.send(Constants.URL_TOPIC,link);
@@ -66,7 +69,7 @@ public class Fetcher implements Runnable{
                     continue;
                 }
             } catch (IOException e) {
-                logger.error("Fetcher {} couldn't check with HBase {}\n{}.",threadNum, link, e.getStackTrace());
+                logger.error("Fetcher {} couldn't check with HBase {}\n{}\n{}.",threadNum, link, e.toString(),e.getStackTrace());
                 ProducerApp.send(Constants.URL_TOPIC,link);
                 continue;
             }
@@ -78,8 +81,8 @@ public class Fetcher implements Runnable{
                 document = fetch(link);
             } catch (IOException e) {
                 Statistics.getInstance().addFailedToFetch(threadNum);
-                logger.error("Fetcher {} timeout reached or connection refused. couldn't connect to {}:\n{}"
-                        ,threadNum, link, e.getStackTrace());
+                logger.error("Fetcher {} timeout reached or connection refused. couldn't connect to {}:\n{}\n{}"
+                        ,threadNum, link, e.toString(),e.getStackTrace());
                 continue;
             }
 
@@ -88,7 +91,7 @@ public class Fetcher implements Runnable{
             try {
                 putFetchedData(fetchedData);
             } catch (InterruptedException e) {
-                logger.error("Fetcher {} while putting fetched data in queue:\n{}",threadNum, e.getStackTrace());
+                logger.error("Fetcher {} while putting fetched data in queue:\n{}\n{}",threadNum, e.toString(),e.getStackTrace());
                 continue;
             }
         }

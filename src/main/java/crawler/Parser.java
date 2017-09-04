@@ -57,6 +57,7 @@ Parser(int threadNum) {
             long kafkaPutsTime = 0;
             try {
                 forParseData = Crawler.fetchedData.take();
+                System.out.println("\ndoc queue is " + Crawler.fetchedData.size() + "\n");
             } catch (InterruptedException e) {
                 logger.error("Parser {} while taking fetched data from queue:\n{}",threadNum, e.getStackTrace());
                 continue;
@@ -92,7 +93,7 @@ Parser(int threadNum) {
 //                hbaseInquiryTimes.add(hbaseInquiryTime);
                 if (!hbaseInquiry){
                     kafkaPutTime = System.currentTimeMillis();
-                    ProducerApp.getInstance().send(Constants.URL_TOPIC,extractedLink);
+                    ProducerApp.send(Constants.URL_TOPIC,extractedLink);
                     kafkaPutTime = System.currentTimeMillis() - kafkaPutTime;
                 }
                 kafkaPutsTime += kafkaPutTime;
