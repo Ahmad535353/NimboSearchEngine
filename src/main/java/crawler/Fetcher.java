@@ -20,12 +20,10 @@ import java.net.URL;
 
 public class Fetcher implements Runnable{
     private int threadNum;
-    private Thread thread = new Thread(this);
     private Logger logger = LoggerFactory.getLogger(Crawler.class);
-
     private Storage storage;
-//    private ProducerApp producerApp = new ProducerApp();
-
+    LruCache lruInstance;
+    ProducerApp producerInstance = ProducerApp.getMyInstance();
     Fetcher(int threadNum){
         this.threadNum = threadNum;
         try {
@@ -33,6 +31,7 @@ public class Fetcher implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
+        lruInstance = LruCache.getInstance();
 //        storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
     }
 
@@ -79,7 +78,7 @@ public class Fetcher implements Runnable{
                 continue;
             }
 
-            Boolean var = LruCache.getInstance().getIfPresent(domain);
+            Boolean var = lruInstance.getIfPresent(domain);
             if (var == null){
                 try {
                     Boolean hbaseInquiry ;
@@ -98,7 +97,7 @@ public class Fetcher implements Runnable{
                         logger.info("{} connecting to (first try) {} ... ",threadNum, link);
                     }else {
                         logger.info("{} connecting to (second try) {} ... ",threadNum, link);
-                        LruCache.getInstance().get(domain);
+                        lruInstance.get(domain);
                     }
                     try {
                         connectTime = System.currentTimeMillis();
@@ -107,7 +106,7 @@ public class Fetcher implements Runnable{
                                 .ignoreHttpErrors(true).timeout(1000).get();
                         connectTime = System.currentTimeMillis() - connectTime ;
                         Statistics.getInstance().addFetchTime(connectTime,threadNum);
-                        LruCache.getInstance().get(domain);
+                        lruInstance.get(domain);
                     } catch (IOException e) {
                         if (j == 1){
                             Statistics.getInstance().incrementFailedLink(threadNum);
@@ -116,7 +115,7 @@ public class Fetcher implements Runnable{
                         logger.error(e.getMessage());
                         continue;
                     }
-                    LruCache.getInstance().get(domain);
+                    lruInstance.get(domain);
                     logger.info("{} connected in {}ms to {}",threadNum, connectTime, link);
                     forParseData.setKeyVal(link,doc);
                     Crawler.putForParseData(forParseData);
@@ -124,7 +123,7 @@ public class Fetcher implements Runnable{
                 }
             }else {
                 logger.info("{} domain {} is not allowed. Back to Queue",threadNum, domain);
-                ProducerApp.getMyInstance().send(Constants.URL_TOPIC,link);
+                producerInstance.send(Constants.URL_TOPIC,link);
             }
         }
     }

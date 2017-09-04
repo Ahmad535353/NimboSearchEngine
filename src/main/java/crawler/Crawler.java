@@ -13,30 +13,17 @@ import utils.Statistics;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class Crawler {
-//    public static Queue queue;
-//    private final static int threadNumber = 30;
-//    private final static int parserNumber = 60;
-//    private final static int fetcherNumber = 10;
-//    public static HBaseSample storage ;
-//    public static HBase storage;
 
+    private static ProducerApp producerInstance = ProducerApp.getMyInstance();
     public static Elastic elasticEngine ;
     public static ArrayBlockingQueue<String> urlQueue = new ArrayBlockingQueue<String>(10000);
     private static ArrayBlockingQueue <MyEntry<String ,Document>> fetchedData = new ArrayBlockingQueue<>(1000);
-
-//    final static String urlTopic = "newUrl5";
-//    final static String forParseDataTopic = "new";
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
+    public static Long startTime ;
 
 
     public static void main(String args[]) throws InterruptedException {
-//        queue = new Queue();
-//        utils.Statistics.getInstance().setThreadsNums(threadNumber, threadNumber);
-//        storage = new HBaseSample();
-//        storage = new HBase();
         elasticEngine = new Elastic();
-//        Queue queue = new Queue();
-        Elastic elasticEngine = new Elastic();
 
 
 
@@ -54,20 +41,21 @@ public class Crawler {
 //        Queue.add("http://www.independent.co.uk",9);
 //        ProducerApp producerApp = new ProducerApp();
         logger.info("Seed added.");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://us.yahoo.com/");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://www.nytimes.com/");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://www.msn.com/en-us/news");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.telegraph.co.uk/news/");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.alexa.com");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.apache.org");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page/World_war_II");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.news.google.com");
-        ProducerApp.getMyInstance().send(Constants.URL_TOPIC,"http://www.independent.co.uk");
+        producerInstance.send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page");
+        producerInstance.send(Constants.URL_TOPIC,"https://us.yahoo.com/");
+        producerInstance.send(Constants.URL_TOPIC,"https://www.nytimes.com/");
+        producerInstance.send(Constants.URL_TOPIC,"https://www.msn.com/en-us/news");
+        producerInstance.send(Constants.URL_TOPIC,"http://www.telegraph.co.uk/news/");
+        producerInstance.send(Constants.URL_TOPIC,"http://www.alexa.com");
+        producerInstance.send(Constants.URL_TOPIC,"http://www.apache.org");
+        producerInstance.send(Constants.URL_TOPIC,"https://en.wikipedia.org/wiki/Main_Page/World_war_II");
+        producerInstance.send(Constants.URL_TOPIC,"http://www.news.google.com");
+        producerInstance.send(Constants.URL_TOPIC,"http://www.independent.co.uk");
 //            **** Q ****
 
         Statistics.getInstance().setThreadsNums(Constants.FETCHER_NUMBER,Constants.PARSER_NUMBER);
         Thread stat = new Thread(Statistics.getInstance());
+        startTime = System.currentTimeMillis();
         for (int i = 0; i < Constants.PARSER_NUMBER; i++) {
             new Thread(new Parser(i)).start();
         }
