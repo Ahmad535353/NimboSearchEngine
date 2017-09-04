@@ -29,27 +29,26 @@ public class HBase implements Storage{
         return connection.getTable(TableName.valueOf(tableName));
     }
 
-    public void addLinks(String url, ArrayList<Map.Entry<String, String>> links) throws IOException {
+    @Override
+    public void addLinks(String url, Map.Entry<String, String>[] links) throws IOException {
         Put put = new Put(Bytes.toBytes(url));
-        if (links == null) {
-            put.addColumn(Bytes.toBytes(familyName), Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
-        } else {
-            if (links.isEmpty())
-                return;
-            for (Map.Entry<String, String> e : links) {
-                put.addColumn(Bytes.toBytes(familyName),
-                        Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
-            }
+        if (links == null || links.length == 0) {
+            return;
+        }
+        for (Map.Entry<String, String> e : links) {
+            put.addColumn(Bytes.toBytes(familyName),
+                    Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
         }
         table.put(put);
     }
 
+    @Override
     public boolean exists(String rowKey) throws IOException {
         Get get = new Get(Bytes.toBytes(rowKey));
         return table.exists(get);
     }
 
-    public void sAddLinks(String url, ArrayList<Map.Entry<String, String>> links) throws IOException {
+    public void sAddLinks(String url, Map.Entry<String, String>[] links) throws IOException {
         Table temp = table;
         table = createTable(tableName);
         addLinks(url, links);

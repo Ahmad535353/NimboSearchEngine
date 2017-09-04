@@ -14,4 +14,7 @@ public class Constants {
     public final static int FETCHED_DATA_QUEUE_SIZE =  10000;
     public final static int URL_QUEUE_SIZE =  100000;
 
+    public final static String ELASTIC_INDEX_NAME =  "myindex";
+    public final static String ELASTIC_TYPE_NAME =  "mytype";
+
 }

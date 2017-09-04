@@ -18,16 +18,16 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class Fetcher implements Runnable{
+public class Fetcher implements Runnable {
 
     private int threadNum;
     private Logger logger = LoggerFactory.getLogger(Crawler.class);
     private Storage storage;
 
-    Fetcher(int threadNum){
+    Fetcher(int threadNum) {
         this.threadNum = threadNum;
         try {
-            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+            storage = new HBase(Constants.HBASE_TABLE_NAME, Constants.HBASE_FAMILY_NAME);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -36,38 +36,38 @@ public class Fetcher implements Runnable{
 
     @Override
     public void run() {
-        logger.info("fetcher {} Started.",threadNum);
-        while (true){
+        logger.info("fetcher {} Started.", threadNum);
+        while (true) {
             String link = null;
             try {
                 link = takeUrl();
             } catch (InterruptedException e) {
-                logger.error("Fetcher {} couldn't take link from queue\n{}.",threadNum, e.getStackTrace());
+                logger.error("Fetcher {} couldn't take link from queue\n{}.", threadNum, e.getStackTrace());
                 continue;
             }
             if (link == null || link.isEmpty()) {
-                logger.error("Fetcher {} gets null or empty link from queue\n.",threadNum);
+                logger.error("Fetcher {} gets null or empty link from queue\n.", threadNum);
                 continue;
             }
 
             String domain = null;
             try {
                 domain = getDomainIfLruAllowed(link);
-            } catch (Exception e){
-                logger.error("Fetcher {} couldn't extract domain {}\n{}.",threadNum, link, e.getStackTrace());
+            } catch (Exception e) {
+                logger.error("Fetcher {} couldn't extract domain {}\n{}.", threadNum, link, e.getStackTrace());
             }
-            if (domain == null){
-                ProducerApp.send(Constants.URL_TOPIC,link);
+            if (domain == null) {
+                ProducerApp.send(Constants.URL_TOPIC, link);
                 continue;
             }
 
             try {
-                if (storage.exists(link)){
+                if (storage.exists(link)) {
                     continue;
                 }
             } catch (IOException e) {
-                logger.error("Fetcher {} couldn't check with HBase {}\n{}.",threadNum, link, e.getStackTrace());
-                ProducerApp.send(Constants.URL_TOPIC,link);
+                logger.error("Fetcher {} couldn't check with HBase {}\n{}.", threadNum, link, e.getStackTrace());
+                ProducerApp.send(Constants.URL_TOPIC, link);
                 continue;
             }
 
@@ -79,16 +79,16 @@ public class Fetcher implements Runnable{
             } catch (IOException e) {
                 Statistics.getInstance().addFailedToFetch(threadNum);
                 logger.error("Fetcher {} timeout reached or connection refused. couldn't connect to {}:\n{}"
-                        ,threadNum, link, e.getStackTrace());
+                        , threadNum, link, e.getStackTrace());
                 continue;
             }
 
-            Pair<String,Document> fetchedData = new Pair<>();
-            fetchedData.setKeyVal(link,document);
+            Pair<String, Document> fetchedData = new Pair<>();
+            fetchedData.setKeyVal(link, document);
             try {
                 putFetchedData(fetchedData);
             } catch (InterruptedException e) {
-                logger.error("Fetcher {} while putting fetched data in queue:\n{}",threadNum, e.getStackTrace());
+                logger.error("Fetcher {} while putting fetched data in queue:\n{}", threadNum, e.getStackTrace());
                 continue;
             }
         }
@@ -101,13 +101,13 @@ public class Fetcher implements Runnable{
         link = Crawler.urlQueue.take();
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addUrlTakeQTime(time,threadNum);
-        logger.info("{} took {} from Q in time {}ms",threadNum, link, time);
+        Statistics.getInstance().addUrlTakeQTime(time, threadNum);
+        logger.info("{} took {} from Q in time {}ms", threadNum, link, time);
 
         return link;
     }
 
-    private void putFetchedData(Pair<String,Document> forParseData) throws InterruptedException {
+    private void putFetchedData(Pair<String, Document> forParseData) throws InterruptedException {
 
         long time = System.currentTimeMillis();
         Crawler.fetchedData.put(forParseData);
@@ -131,28 +131,27 @@ public class Fetcher implements Runnable{
         boolean exist = LruCache.getInstance().exist(domain);
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addLruCheckTime(time,threadNum);
+        Statistics.getInstance().addLruCheckTime(time, threadNum);
 
-        if(exist) {
+        if (exist) {
             logger.info("Fetcher {} domain {} is not allowed. Back to Queue", threadNum, domain);
             Statistics.getInstance().addFailedLru(threadNum);
             return null;
-        }
-        else {
+        } else {
             logger.info("Fetcher {} domain {} is allowed.", threadNum, domain);
             return domain;
         }
     }
 
     private Document fetch(String link) throws IOException {
-        logger.info("{} connecting to {} ... ",threadNum, link);
-        Long connectTime= System.currentTimeMillis();
+        logger.info("{} connecting to {} ... ", threadNum, link);
+        Long connectTime = System.currentTimeMillis();
         Document doc = Jsoup.connect(link)
                 .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                 .ignoreHttpErrors(true).timeout(Constants.FETCH_TIMEOUT).get();
-        connectTime = System.currentTimeMillis() - connectTime ;
-        Statistics.getInstance().addFetchTime(connectTime,threadNum);
-        logger.info("{} connected in {}ms to {}",threadNum, connectTime, link);
+        connectTime = System.currentTimeMillis() - connectTime;
+        Statistics.getInstance().addFetchTime(connectTime, threadNum);
+        logger.info("{} connected in {}ms to {}", threadNum, connectTime, link);
         return doc;
     }
 }

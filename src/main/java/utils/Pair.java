@@ -31,4 +31,13 @@ public class Pair<K, V> implements Map.Entry<K, V> {
         this.key = key;
         this.value = val;
     }
+
+    @Override
+    public boolean equals(Object object){
+        if(object instanceof Pair && this.key.equals(((Pair)object).key)){
+            return true;
+        }
+        return false;
+    }
+
 }
