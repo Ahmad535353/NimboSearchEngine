@@ -1,5 +1,6 @@
 package utils;
 
+import crawler.Crawler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,7 @@ public class Statistics implements Runnable{
     private final String ELASTIC_PUT_NUM = "elasticPutNum";
     private final String LRU_CHECK_TIME = "lruCheckTime";
     private final String LRU_CHECK_NUM = "lruCheckNum";
+    private final int REFRESH_TIME = Constants.STATISTIC_REFRESH_TIME / 1000;
 
 
 
@@ -159,43 +161,69 @@ public class Statistics implements Runnable{
 
         if (oldTotal != null){
             first = newTotal.get(PARSE_NUM) - oldTotal.get(PARSE_NUM);
+            if (first == 0){
+                return;
+            }
             second =  newTotal.get(PARSE_TIME) - oldTotal.get(PARSE_TIME);
             periodLogger.info("{} links parsed in {}ms", first,second);
-            periodLogger.info("average links/sec is {}", second/first);
+            periodLogger.info("average links/sec parsed is {}", second/first);
 
 
             first = newTotal.get(URL_PUT_Q_NUM) - oldTotal.get(URL_PUT_Q_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(URL_PUT_Q_TIME) - oldTotal.get(URL_PUT_Q_TIME);
             periodLogger.info("{} links added in Kafka in {}ms", first,second);
             periodLogger.info("average links/sec added in Kafka is {}", second/first);
 
             first = newTotal.get(HBASE_CHECK_NUM) - oldTotal.get(HBASE_CHECK_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(HBASE_CHECK_TIME) - oldTotal.get(HBASE_CHECK_TIME);
             periodLogger.info("{} links checked with HBase in {}ms", first,second);
             periodLogger.info("average links/sec checked with HBase is {}", second/first);
 
             first = newTotal.get(HBASE_PUT_NUM) - oldTotal.get(HBASE_PUT_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(HBASE_PUT_TIME) - oldTotal.get(HBASE_PUT_TIME);
             periodLogger.info("{} links added to HBase in {}ms", first,second);
             periodLogger.info("average links/sec added to HBase is {}", second/first);
+            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(ELASTIC_PUT_NUM) - oldTotal.get(ELASTIC_PUT_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(ELASTIC_PUT_TIME) - oldTotal.get(ELASTIC_PUT_TIME);
             periodLogger.info("{} links added to Elastic in {}ms", first,second);
             periodLogger.info("average links/sec added to Elastic is {}", second/first);
 
             first = newTotal.get(FETCH_NUM) - oldTotal.get(FETCH_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(FETCH_TIME) - oldTotal.get(FETCH_TIME);
             periodLogger.info("{} links fetched in {}ms", first,second);
             periodLogger.info("average fetch time is {}", second/first);
 
             first = newTotal.get(URL_TAKE_Q_NUM) - oldTotal.get(URL_TAKE_Q_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(URL_TAKE_Q_TIME) - oldTotal.get(URL_TAKE_Q_TIME);
             periodLogger.info("{} links taked from buffer in {}ms", first,second);
             periodLogger.info("average buffer time is {}", second/first);
 
             first = newTotal.get(FAILED_TO_FETCH) - oldTotal.get(FAILED_TO_FETCH);
-            periodLogger.info("failed to connect to {} links\n", first);
+            periodLogger.info("failed to connect to {} links", first);
+
+            periodLogger.info("links in wait: {}", Crawler.urlQueue.size());
+            periodLogger.info("documents in wait: {}", Crawler.fetchedData.size());
+            periodLogger.info("\t Crawler Rate is {} links/sec\n",rate);
         }
         oldTotal = newTotal;
     }
@@ -218,26 +246,28 @@ public class Statistics implements Runnable{
         int max = Math.max(fetcherThreadNum,parserThreadNum);
         for (int i = 0; i < max ; i++) {
             ConcurrentHashMap<String,Long> tmp = new ConcurrentHashMap<>();
-            tmp.put(FAILED_TO_FETCH,0L);
-            tmp.put(FETCH_TIME, 0L);
+            tmp.put(FAILED_TO_FETCH,1L);
+            tmp.put(FAILED_LRU,1L);
+            tmp.put(FETCH_TIME, 1L);
             tmp.put(FETCH_NUM, 1L);
-            tmp.put(URL_TAKE_Q_TIME, 0L);
+            tmp.put(URL_TAKE_Q_TIME, 1L);
             tmp.put(URL_TAKE_Q_NUM, 1L);
-            tmp.put(PARSE_TIME, 0L);
+            tmp.put(PARSE_TIME, 1L);
             tmp.put(PARSE_NUM, 1L);
-            tmp.put(URL_PUT_Q_TIME, 0L);
+            tmp.put(URL_PUT_Q_TIME, 1L);
             tmp.put(URL_PUT_Q_NUM, 1L);
-            tmp.put(DOC_TAKE_TIME, 0L);
+            tmp.put(DOC_TAKE_TIME, 1L);
             tmp.put(DOC_TAKE_NUM, 1L);
-            tmp.put(DOC_PUT_TIME, 0L);
+            tmp.put(DOC_PUT_TIME, 1L);
             tmp.put(DOC_PUT_NUM, 1L);
-            tmp.put(HBASE_CHECK_TIME, 0L);
+            tmp.put(HBASE_CHECK_TIME, 1L);
             tmp.put(HBASE_CHECK_NUM, 1L);
-            tmp.put(HBASE_PUT_TIME,0L);
+            tmp.put(HBASE_PUT_TIME,1L);
             tmp.put(HBASE_PUT_NUM,1L);
-            tmp.put(ELASTIC_PUT_TIME, 0L);
+            tmp.put(ELASTIC_PUT_TIME, 1L);
             tmp.put(ELASTIC_PUT_NUM, 1L);
-
+            tmp.put(LRU_CHECK_TIME, 1L);
+            tmp.put(LRU_CHECK_NUM, 1L);
             threadsTimes.add(tmp);
         }
         System.out.println("test");
@@ -282,8 +312,8 @@ public class Statistics implements Runnable{
         addTime(elasticPutTime, threadNum, ELASTIC_PUT_TIME, ELASTIC_PUT_NUM);
     }
 
-    public void addLruCheckTime(long lruCheckTime, int lruCheckNum) {
-        addTime(lruCheckTime, lruCheckNum, LRU_CHECK_TIME, LRU_CHECK_NUM);
+    public void addLruCheckTime(long lruCheckTime, int threadNum) {
+        addTime(lruCheckTime, threadNum, LRU_CHECK_TIME, LRU_CHECK_NUM);
     }
     public void addFailedLru(int lruCheckNum) {
         addNum(lruCheckNum, FAILED_LRU);
