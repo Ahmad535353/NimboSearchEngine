@@ -3,7 +3,7 @@ package crawler;
 import java.io.UnsupportedEncodingException;
 
 public class LanguageDetector {
-    public static Boolean IsEnglish(String str,double d)
+    public Boolean IsEnglish(String str,double d)
     {
         try {
             if(str.length()==0)

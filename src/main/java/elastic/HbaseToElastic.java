@@ -1,4 +1,5 @@
 package elastic;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -6,6 +7,7 @@ import org.apache.hadoop.hbase.client.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,10 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author amirphl
  */
+
 public class HbaseToElastic {
 
     private LinkedBlockingQueue<String> list = new LinkedBlockingQueue();
-    private List<String[]> arrayList;
     private Table table;
     private final Object SYNC_OBJ = new Object();
     private int numOfThreads;
@@ -40,8 +42,6 @@ public class HbaseToElastic {
         fw = new FileWriter(new File(logPath));
 
         System.out.println("conf created.");
-
-        arrayList = Collections.synchronizedList(new ArrayList<String[]>());
 
         Thread adderThread = new Thread(new Adder());
         adderThread.start();
@@ -114,7 +114,6 @@ public class HbaseToElastic {
                         contentBuilder.append(element.text());
                     }
                     content = contentBuilder.toString();
-//                arrayList.add(new String[]{url, content, title, "phl", "mytype"});
                     elasticEngine.IndexData(url, content, title, "phl", "mytype");
                 } catch (MalformedURLException e) {
                     System.out.println("MalformedURLException happened in thread " + id);
@@ -143,13 +142,5 @@ public class HbaseToElastic {
 
     public void stop() {
         atomicBoolean.set(false);
-    }
-
-    public static void main(String[] args) {
-        try {
-            HbaseToElastic ea = new HbaseToElastic("aTest", 200, "/home/amirphl/ElasticLog");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
