@@ -1,17 +1,15 @@
 package crawler;
 
-import crawler.Crawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import queue.ProducerApp;
+import kafka.ProducerApp;
 import storage.HBase;
-import storage.HBaseSample;
 import storage.Storage;
 import utils.Constants;
-import utils.MyEntry;
+import utils.Pair;
 import utils.Statistics;
 
 import java.io.IOException;
@@ -41,12 +39,12 @@ Parser(int threadNum) {
         logger.info("parser {} Started.",threadNum);
         while (true){
             Elements elements = new Elements();
-            MyEntry<String, Document> forParseData = new MyEntry<>();
+            Pair<String, Document> forParseData = new Pair<>();
             String link;
-            Document doc ;
-            String title ;
+            Document doc;
+            String title;
             StringBuilder contentBuilder = new StringBuilder();
-            String content ;
+            String content;
             String extractedLink;
             String anchor;
             ArrayList<Map.Entry<String, String>> linksAnchors = new ArrayList<>();
@@ -57,7 +55,12 @@ Parser(int threadNum) {
             long hbaseInquiriesTime  = 0;
             long kafkaPutTime = 0;
             long kafkaPutsTime = 0;
-            forParseData = Crawler.takeForParseData();
+            try {
+                forParseData = Crawler.fetchedData.take();
+            } catch (InterruptedException e) {
+                logger.error("Parser {} while taking fetched data from queue:\n{}",threadNum, e.getStackTrace());
+                continue;
+            }
             parseTime = System.currentTimeMillis();
             link = forParseData.getKey();
             doc = forParseData.getValue();
@@ -69,7 +72,7 @@ Parser(int threadNum) {
             content = contentBuilder.toString();
             elements = doc.select("a[href]");
             for (Element element : elements){
-                MyEntry<String , String> linkAnchor = new MyEntry<>();
+                Pair<String , String> linkAnchor = new Pair<>();
                 extractedLink = element.attr("abs:href");
                 anchor = element.text();
                 if (extractedLink == null || extractedLink.isEmpty() || extractedLink.equals(link)){
@@ -81,7 +84,7 @@ Parser(int threadNum) {
                     hbaseInquiry = storage.exists(extractedLink);
                 } catch (IOException e) {
                     failedToCheckInHbase.add(extractedLink);
-                    logger.error("Thread {} while checking existence in HBase:\n{}", threadNum, e.getStackTrace());
+                    logger.error("Parser {} while checking existence in HBase:\n{}", threadNum, e.getStackTrace());
                     continue;
                 }
                 hbaseInquiryTime = System.currentTimeMillis() - hbaseInquiryTime;
@@ -89,7 +92,7 @@ Parser(int threadNum) {
 //                hbaseInquiryTimes.add(hbaseInquiryTime);
                 if (!hbaseInquiry){
                     kafkaPutTime = System.currentTimeMillis();
-                    ProducerApp.getMyInstance().send(Constants.URL_TOPIC,extractedLink);
+                    ProducerApp.getInstance().send(Constants.URL_TOPIC,extractedLink);
                     kafkaPutTime = System.currentTimeMillis() - kafkaPutTime;
                 }
                 kafkaPutsTime += kafkaPutTime;
@@ -105,7 +108,7 @@ Parser(int threadNum) {
                 avgQPutTime = kafkaPutsTime/elements.size();
                 avgHBaseInqTime = hbaseInquiriesTime/elements.size();
             }
-            logger.info("{} inquiry avg time for queue in {}ms {}",threadNum, avgHBaseInqTime, link);
+            logger.info("{} inquiry avg time for kafka in {}ms {}",threadNum, avgHBaseInqTime, link);
             Statistics.getInstance().addUrlPutQTime(avgQPutTime,threadNum);
             Statistics.getInstance().addHbaseCheckTime(avgHBaseInqTime,threadNum);
             parseTime = ((System.currentTimeMillis() - parseTime) - hbaseInquiriesTime) - kafkaPutsTime;
@@ -126,5 +129,8 @@ Parser(int threadNum) {
             Statistics.getInstance().addElasticPutTime(elasticPutTime,threadNum);
             logger.info("{} data added to elastic in {}ms for {}",threadNum,threadNum,elasticPutTime,link);
         }
+
+
     }
+
 }

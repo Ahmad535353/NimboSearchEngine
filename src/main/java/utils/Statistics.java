@@ -20,6 +20,7 @@ public class Statistics implements Runnable{
     private int parserThreadNum;
     private static Statistics myStat = null;
     private final String FAILED_TO_FETCH = "failedToFetch";
+    private final String FAILED_LRU = "failedLru";
     private final String FETCH_TIME = "fetchTime";
     private final String FETCH_NUM = "fetchNum";
     private final String URL_TAKE_Q_TIME = "urlTakeQTime";
@@ -38,6 +39,9 @@ public class Statistics implements Runnable{
     private final String HBASE_PUT_NUM = "hBasePutNum";
     private final String ELASTIC_PUT_TIME = "elasticPutTime";
     private final String ELASTIC_PUT_NUM = "elasticPutNum";
+    private final String LRU_CHECK_TIME = "lruCheckTime";
+    private final String LRU_CHECK_NUM = "lruCheckNum";
+
 
 
     public synchronized static Statistics getInstance(){
@@ -74,8 +78,8 @@ public class Statistics implements Runnable{
 
             first = thread.get(HBASE_CHECK_TIME);
             second = thread.get(HBASE_CHECK_NUM);
-            statLog.info("thread{} HBase check time is {} and num is {}",i,first,second);
-            statLog.info("thread{} average Hbase check time is : {}",i,first/second);
+            statLog.info("thread{} HBase exist time is {} and num is {}",i,first,second);
+            statLog.info("thread{} average Hbase exist time is : {}",i,first/second);
             addToTotal(HBASE_CHECK_TIME,first);
             addToTotal(HBASE_CHECK_NUM,second);
 
@@ -206,9 +210,6 @@ public class Statistics implements Runnable{
             newTotal.put(key,newVal);
         }
     }
-//    private void addToPeriodic(String key, Long value){
-//        periodic.put(key,value);
-//    }
 
     public void setThreadsNums(int fetcherThreadNum, int parserThreadNum){
         this.fetcherThreadNum = fetcherThreadNum;
@@ -242,98 +243,64 @@ public class Statistics implements Runnable{
         System.out.println("test");
     }
 
-    public void incrementFailedLink(int threadNum){
-        Long newNum = threadsTimes.get(threadNum).get(FAILED_TO_FETCH) + 1;
-        threadsTimes.get(threadNum).put(FAILED_TO_FETCH, newNum);
+    public void addFailedToFetch(int threadNum){
+        addNum(threadNum, FAILED_TO_FETCH);
     }
     public void addFetchTime(Long fetchTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(FETCH_TIME);
-        Long newTime = oldTime + fetchTime;
-        threadsTimes.get(threadNum).put(FETCH_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(FETCH_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(FETCH_NUM, newNum);
+        addTime(fetchTime, threadNum, FETCH_TIME, FETCH_NUM);
     }
 
     public void addUrlTakeQTime(Long urlTakeQTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(URL_TAKE_Q_TIME);
-        Long newTime = oldTime + urlTakeQTime;
-        threadsTimes.get(threadNum).put(URL_TAKE_Q_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(URL_TAKE_Q_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(URL_TAKE_Q_NUM, newNum);
-    }
-
-    public void addParseTime(Long parseTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(PARSE_TIME);
-        Long newTime = oldTime + parseTime;
-        threadsTimes.get(threadNum).put(PARSE_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(PARSE_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(PARSE_NUM, newNum);
+        addTime(urlTakeQTime, threadNum, URL_TAKE_Q_TIME, URL_TAKE_Q_NUM);
     }
 
     public void addUrlPutQTime(Long urlPutQTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(URL_PUT_Q_TIME);
-        Long newTime = oldTime + urlPutQTime;
-        threadsTimes.get(threadNum).put(URL_PUT_Q_TIME, newTime);
+        addTime(urlPutQTime, threadNum, URL_PUT_Q_TIME, URL_PUT_Q_NUM);
+    }
 
-        Long oldNum = threadsTimes.get(threadNum).get(URL_PUT_Q_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(URL_PUT_Q_NUM, newNum);
+    public void addParseTime(Long parseTime, int threadNum) {
+        addTime(parseTime, threadNum, PARSE_TIME, PARSE_NUM);
     }
 
     public void addDocTakeTime(Long docTakeTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(DOC_TAKE_TIME);
-        Long newTime = oldTime + docTakeTime;
-        threadsTimes.get(threadNum).put(DOC_TAKE_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(DOC_TAKE_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(DOC_TAKE_NUM, newNum);
+        addTime(docTakeTime, threadNum, DOC_TAKE_TIME, DOC_TAKE_NUM);
     }
 
     public void addDocPutTime(Long docPutTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(DOC_PUT_TIME);
-        Long newTime = oldTime + docPutTime;
-        threadsTimes.get(threadNum).put(DOC_PUT_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(DOC_PUT_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(DOC_PUT_NUM, newNum);
+        addTime(docPutTime, threadNum, DOC_PUT_TIME, DOC_PUT_NUM);
     }
 
     public void addHbaseCheckTime(Long hBaseCheckTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(HBASE_CHECK_TIME);
-        Long newTime = oldTime + hBaseCheckTime;
-        threadsTimes.get(threadNum).put(HBASE_CHECK_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(HBASE_CHECK_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(HBASE_CHECK_NUM, newNum);
+        addTime(hBaseCheckTime, threadNum, HBASE_CHECK_TIME, HBASE_CHECK_NUM);
     }
 
     public void addHbasePutTime(Long hBasePutTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(HBASE_PUT_TIME);
-        Long newTime = oldTime + hBasePutTime;
-        threadsTimes.get(threadNum).put(HBASE_PUT_TIME, newTime);
-
-        Long oldNum = threadsTimes.get(threadNum).get(HBASE_PUT_NUM);
-        Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(HBASE_PUT_NUM, newNum);
+        addTime(hBasePutTime, threadNum, HBASE_PUT_TIME, HBASE_PUT_NUM);
     }
 
     public void addElasticPutTime(Long elasticPutTime, int threadNum) {
-        Long oldTime = threadsTimes.get(threadNum).get(ELASTIC_PUT_TIME);
-        Long newTime = oldTime + elasticPutTime;
-        threadsTimes.get(threadNum).put(ELASTIC_PUT_TIME, newTime);
+        addTime(elasticPutTime, threadNum, ELASTIC_PUT_TIME, ELASTIC_PUT_NUM);
+    }
 
-        Long oldNum = threadsTimes.get(threadNum).get(ELASTIC_PUT_NUM);
+    public void addLruCheckTime(long lruCheckTime, int lruCheckNum) {
+        addTime(lruCheckTime, lruCheckNum, LRU_CHECK_TIME, LRU_CHECK_NUM);
+    }
+    public void addFailedLru(int lruCheckNum) {
+        addNum(lruCheckNum, FAILED_LRU);
+    }
+
+    private void addTime(Long time, int threadNum, String timeName, String numName) {
+        Long oldTime = threadsTimes.get(threadNum).get(timeName);
+        Long newTime = oldTime + time;
+        threadsTimes.get(threadNum).put(timeName, newTime);
+
+        Long oldNum = threadsTimes.get(threadNum).get(numName);
         Long newNum = ++oldNum ;
-        threadsTimes.get(threadNum).put(ELASTIC_PUT_NUM, newNum);
+        threadsTimes.get(threadNum).put(numName, newNum);
+    }
+    public void addNum(int threadNum, String numName){
+        Long newNum = threadsTimes.get(threadNum).get(numName) + 1;
+        threadsTimes.get(threadNum).put(numName, newNum);
     }
 
     @Override
@@ -341,7 +308,7 @@ public class Statistics implements Runnable{
         statLog.info("at least it works.");
         while (true){
             try {
-                Thread.sleep(Constants.statisticRefreshTime);
+                Thread.sleep(Constants.STATISTIC_REFRESH_TIME);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

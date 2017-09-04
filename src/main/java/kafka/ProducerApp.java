@@ -1,23 +1,14 @@
-package queue;
+package kafka;
 
-import org.apache.kafka.clients.KafkaClient;
 import org.apache.kafka.clients.producer.*;
 
-import java.text.*;
 import java.util.*;
 
 public class ProducerApp {
+
     private static Producer<String, String> producer;
-    private static ProducerApp myInstance;
 
-    public static ProducerApp getMyInstance() {
-        if (myInstance == null){
-            myInstance = new ProducerApp();
-        }
-        return myInstance;
-    }
-
-    private ProducerApp(){
+    static {
         Properties props = new Properties();
         props.put("bootstrap.servers", "server1:9092, server2:9092");
 //        props.put("bootstrap.servers", "172.16.16.106:9092");
@@ -31,7 +22,7 @@ public class ProducerApp {
         producer = new KafkaProducer<String, String>(props);
     }
 
-    public void send (String topic, String value) {
+    public static void send (String topic, String value) {
         producer.send(new ProducerRecord<String, String>(topic, value));
     }
 }

@@ -9,7 +9,8 @@ import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
-import utils.MyEntry;
+import utils.Pair;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -78,14 +79,14 @@ public class ProLanguageDetector {
 
         long t = System.currentTimeMillis();
         while (System.currentTimeMillis() - t < 200) {
-            MyEntry<String, Integer> maxEntry = new MyEntry<>();
+            Pair<String, Integer> maxEntry = new Pair<>();
             maxEntry.setKeyVal("!", 0);
             Iterator it = languages.entrySet().iterator();
 
             while (it.hasNext()) {
-                MyEntry<String, Integer> pair = (MyEntry<String, Integer>) it.next();
+                Pair<String, Integer> pair = (Pair<String, Integer>) it.next();
                 if (pair.getValue() > maxEntry.getValue()) {
-                    maxEntry = new MyEntry();
+                    maxEntry = new Pair();
                     maxEntry.setKeyVal(pair.getKey(), pair.getValue());
                 }
             }

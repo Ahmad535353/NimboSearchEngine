@@ -1,9 +1,7 @@
-package queue;
+package kafka;
 
 import crawler.Crawler;
 import org.apache.kafka.clients.consumer.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import utils.Constants;
 
 import java.util.*;
