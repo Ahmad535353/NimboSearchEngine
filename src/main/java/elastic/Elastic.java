@@ -52,14 +52,10 @@ public class Elastic{
     // --------------------- index ------------------------------
     public IndexResponse IndexData(String url, String content, String title, String index, String type)
     {
-        final byte[] utf8Bytes;
-        try {
-            utf8Bytes = url.getBytes("UTF-8");
-            if(utf8Bytes.length>512)
-                return null;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+
+        if(url.length()>512)
+            return null;
+
         IndexResponse response=new IndexResponse();
         try {
             XContentBuilder builder;

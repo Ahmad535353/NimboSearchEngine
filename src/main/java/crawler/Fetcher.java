@@ -152,7 +152,8 @@ public class Fetcher implements Runnable{
         Long connectTime= System.currentTimeMillis();
         Document doc = Jsoup.connect(link)
                 .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
-                .ignoreHttpErrors(true).timeout(Constants.FETCH_TIMEOUT).get();
+//                .ignoreHttpErrors(true).timeout(Constants.FETCH_TIMEOUT).get();
+                .ignoreHttpErrors(false).timeout(Constants.FETCH_TIMEOUT).get();
         connectTime = System.currentTimeMillis() - connectTime ;
         Statistics.getInstance().addFetchTime(connectTime,threadNum);
         logger.info("{} connected in {}ms to {}",threadNum, connectTime, link);

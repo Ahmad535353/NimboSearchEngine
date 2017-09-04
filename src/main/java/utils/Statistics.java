@@ -1,5 +1,6 @@
 package utils;
 
+import crawler.Crawler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,38 +170,59 @@ public class Statistics implements Runnable{
 
 
             first = newTotal.get(URL_PUT_Q_NUM) - oldTotal.get(URL_PUT_Q_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(URL_PUT_Q_TIME) - oldTotal.get(URL_PUT_Q_TIME);
             periodLogger.info("{} links added in Kafka in {}ms", first,second);
             periodLogger.info("average links/sec added in Kafka is {}", second/first);
 
             first = newTotal.get(HBASE_CHECK_NUM) - oldTotal.get(HBASE_CHECK_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(HBASE_CHECK_TIME) - oldTotal.get(HBASE_CHECK_TIME);
             periodLogger.info("{} links checked with HBase in {}ms", first,second);
             periodLogger.info("average links/sec checked with HBase is {}", second/first);
 
             first = newTotal.get(HBASE_PUT_NUM) - oldTotal.get(HBASE_PUT_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(HBASE_PUT_TIME) - oldTotal.get(HBASE_PUT_TIME);
             periodLogger.info("{} links added to HBase in {}ms", first,second);
             periodLogger.info("average links/sec added to HBase is {}", second/first);
+            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(ELASTIC_PUT_NUM) - oldTotal.get(ELASTIC_PUT_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(ELASTIC_PUT_TIME) - oldTotal.get(ELASTIC_PUT_TIME);
             periodLogger.info("{} links added to Elastic in {}ms", first,second);
             periodLogger.info("average links/sec added to Elastic is {}", second/first);
-            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(FETCH_NUM) - oldTotal.get(FETCH_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(FETCH_TIME) - oldTotal.get(FETCH_TIME);
             periodLogger.info("{} links fetched in {}ms", first,second);
             periodLogger.info("average fetch time is {}", second/first);
 
             first = newTotal.get(URL_TAKE_Q_NUM) - oldTotal.get(URL_TAKE_Q_NUM);
+            if (first == 0){
+                return;
+            }
             second = newTotal.get(URL_TAKE_Q_TIME) - oldTotal.get(URL_TAKE_Q_TIME);
             periodLogger.info("{} links taked from buffer in {}ms", first,second);
             periodLogger.info("average buffer time is {}", second/first);
 
             first = newTotal.get(FAILED_TO_FETCH) - oldTotal.get(FAILED_TO_FETCH);
             periodLogger.info("failed to connect to {} links", first);
+
+            periodLogger.info("links in wait: {}", Crawler.urlQueue.size());
+            periodLogger.info("documents in wait: {}", Crawler.fetchedData.size());
             periodLogger.info("\t Crawler Rate is {} links/sec\n",rate);
         }
         oldTotal = newTotal;

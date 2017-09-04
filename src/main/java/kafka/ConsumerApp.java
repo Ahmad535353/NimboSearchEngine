@@ -7,7 +7,7 @@ import utils.Constants;
 import java.util.*;
 
 public class ConsumerApp extends Thread {
-//    private static Logger logger = LoggerFactory.getLogger(crawler.Crawler.class);
+    //    private static Logger logger = LoggerFactory.getLogger(crawler.Crawler.class);
     public static KafkaConsumer<String, String> consumer;
 
     static {
@@ -23,9 +23,10 @@ public class ConsumerApp extends Thread {
         props.put("session.timeout.ms", 30000);
         props.put("auto.offset.reset", "earliest");
         props.put("connections.max.idle.ms", 540000);
-        props.put("enable.auto.commit", true);
+        props.put("enable.auto.commit", false);
         props.put("exclude.internal.topics", true);
         props.put("max.poll.records", 100);
+//        props.put("max.poll.interval.ms",50);
         props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RangeAssignor");
         props.put("request.timeout.ms", 40000);
         props.put("auto.commit.interval.ms", 5000);
@@ -43,11 +44,10 @@ public class ConsumerApp extends Thread {
     }
 
 
-    public void run () {
+    public void run() {
         while (true) {
-            ConsumerRecords<String, String> records = consumer.poll(100);
-
-            for (ConsumerRecord<String , String> record:records) {
+            ConsumerRecords<String, String> records = consumer.poll(50);
+            for (ConsumerRecord<String, String> record : records) {
                 try {
 //                    while (Crawler.urlQueue.remainingCapacity() <= 10) {
 //                        consumer.pause(consumer.assignment());
@@ -65,6 +65,38 @@ public class ConsumerApp extends Thread {
                     e.printStackTrace();
                 }
             }
+
+//            while (Crawler.urlQueue.remainingCapacity() > 200) {
+//
+//                ConsumerRecords<String, String> records = consumer.poll(50);
+//
+//                for (ConsumerRecord<String, String> record : records) {
+//                    try {
+////                    while (Crawler.urlQueue.remainingCapacity() <= 10) {
+////                        consumer.pause(consumer.assignment());
+////                        consumer.poll(1);
+////                        Thread.sleep(100);
+////                    }
+////
+////                    consumer.resume(consumer.assignment());
+//
+//                        Crawler.urlQueue.put(record.value());
+//
+//                    } catch (IllegalStateException e) {
+////                    logger.error("{}", e.getMessage());
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//            while (!Crawler.urlQueue.isEmpty()){
+//                try {
+//                    Thread.sleep(Constants.KAFKA_SLEEP_TIME);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            consumer.commitAsync();
         }
 
     }

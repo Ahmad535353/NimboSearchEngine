@@ -1,7 +1,7 @@
 package crawler;
 
-import com.cybozu.labs.langdetect.LangDetectException;
-import com.cybozu.labs.langdetect.Language;
+//import com.cybozu.labs.langdetect.LangDetectException;
+//import com.cybozu.labs.langdetect.Language;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -40,12 +40,12 @@ public class Parser implements Runnable {
     @Override
     public void run() {
         logger.info("parser {} Started.", threadNum);
-        CybozuLangDetect cybozuLangDetect = new CybozuLangDetect();
-        try {
-            cybozuLangDetect.init("/home/nimbo_search/amirphl/profiles");
-        } catch (LangDetectException e) {
-            e.printStackTrace();
-        }
+//        CybozuLangDetect cybozuLangDetect = new CybozuLangDetect();
+//        try {
+//            cybozuLangDetect.init("/home/nimbo_search/amirphl/profiles");
+//        } catch (LangDetectException e) {
+//            e.printStackTrace();
+//        }
         while (true) {
             Elements elements = new Elements();
             Pair<String, Document> forParseData = new Pair<>();
@@ -80,16 +80,16 @@ public class Parser implements Runnable {
                 contentBuilder.append(element.text());
             }
             content = contentBuilder.toString();
-            try {
-                ArrayList<Language> arrayList = cybozuLangDetect.detectLangs(content);
-                Language lang = arrayList.get(0);
-                if (!lang.lang.equals("en"))
-                    continue;
-            } catch (LangDetectException e) {
-                e.printStackTrace();
-            } catch (IndexOutOfBoundsException e){
-                continue;
-            }
+//            try {
+//                ArrayList<Language> arrayList = cybozuLangDetect.detectLangs(content);
+//                Language lang = arrayList.get(0);
+//                if (!lang.lang.equals("en"))
+//                    continue;
+//            } catch (LangDetectException e) {
+//                e.printStackTrace();
+//            } catch (IndexOutOfBoundsException e){
+//                continue;
+//            }
             elements = doc.select("a[href]");
             for (Element element : elements) {
                 Pair<String, String> linkAnchor = new Pair<>();
@@ -144,7 +144,7 @@ public class Parser implements Runnable {
             Statistics.getInstance().addHbasePutTime(hbasePutTime, threadNum);
             logger.info("{} data added to hbase in {}ms for {}", threadNum, hbasePutTime, link);
             elasticPutTime = System.currentTimeMillis();
-            Crawler.elasticEngine.IndexData(link, content, title, "myindex", "mytype");
+            Crawler.elasticEngine.IndexData(link, content, title, "hkh", "mytype");
             elasticPutTime = System.currentTimeMillis() - elasticPutTime;
             Statistics.getInstance().addElasticPutTime(elasticPutTime, threadNum);
             logger.info("{} data added to elastic in {}ms for {}", threadNum, threadNum, elasticPutTime, link);
