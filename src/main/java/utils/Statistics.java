@@ -347,28 +347,39 @@ public class Statistics implements Runnable{
         int max = Math.max(fetcherThreadNum,parserThreadNum);
         for (int i = 0; i < max ; i++) {
             ConcurrentHashMap<String,Long> tmp = new ConcurrentHashMap<>();
-            tmp.put(FETCHER_FAILED_TO_FETCH_NUM,1L);
-            tmp.put(FETCHER_FAILED_LRU_NUM,1L);
-            tmp.put(FETCHER_FETCH_TIME, 1L);
-            tmp.put(FETCHER_FETCH_NUM, 1L);
-            tmp.put(FETCHER_TAKE_URL_TIME, 1L);
-            tmp.put(FETCHER_TAKE_URL_NUM, 1L);
+
+            tmp.put(PARSER_TAKE_FETCHED_DATA_TIME, 1L);
+            tmp.put(PARSER_TAKE_FETCHED_DATA_NUM, 1L);
             tmp.put(PARSER_PARSE_TIME, 1L);
             tmp.put(PARSER_PARSE_NUM, 1L);
+            tmp.put(PARSER_ELASTIC_PUT_TIME, 1L);
+            tmp.put(PARSER_ELASTIC_PUT_NUM, 1L);
+            tmp.put(PARSER_HBASE_PUT_TIME,1L);
+            tmp.put(PARSER_HBASE_PUT_NUM,1L);
+            tmp.put(PARSER_HBASE_CHECK_TIME, 1L);
+            tmp.put(PARSER_HBASE_CHECK_NUM, 1L);
+            tmp.put(PARSER_KAFKA_PUT_TIME, 1L);
+            tmp.put(PARSER_KAFKA_PUT_NUM, 1L);
+
+            tmp.put(FETCHER_TAKE_URL_TIME, 1L);
+            tmp.put(FETCHER_TAKE_URL_NUM, 1L);
+            tmp.put(FETCHER_LRU_CHECK_TIME, 1L);
+            tmp.put(FETCHER_LRU_CHECK_NUM, 1L);
+            tmp.put(FETCHER_FAILED_LRU_NUM,1L);
+            tmp.put(FETCHER_HBASE_CHECK_TIME, 1L);
+            tmp.put(FETCHER_HBASE_CHECK_NUM, 1L);
+            tmp.put(FETCHER_FETCH_TIME, 1L);
+            tmp.put(FETCHER_FETCH_NUM, 1L);
+            tmp.put(FETCHER_FAILED_TO_FETCH_NUM,1L);
+            tmp.put(FETCHER_PUT_FETCHED_DATA_TIME,1L);
+            tmp.put(FETCHER_PUT_FETCHED_DATA_NUM,1L);
+
             tmp.put(URL_PUT_Q_TIME, 1L);
             tmp.put(URL_PUT_Q_NUM, 1L);
             tmp.put(DOC_TAKE_TIME, 1L);
             tmp.put(DOC_TAKE_NUM, 1L);
             tmp.put(DOC_PUT_TIME, 1L);
             tmp.put(DOC_PUT_NUM, 1L);
-            tmp.put(FETCHER_HBASE_CHECK_TIME, 1L);
-            tmp.put(FETCHER_HBASE_CHECK_NUM, 1L);
-            tmp.put(PARSER_HBASE_PUT_TIME,1L);
-            tmp.put(PARSER_HBASE_PUT_NUM,1L);
-            tmp.put(PARSER_ELASTIC_PUT_TIME, 1L);
-            tmp.put(PARSER_ELASTIC_PUT_NUM, 1L);
-            tmp.put(FETCHER_LRU_CHECK_TIME, 1L);
-            tmp.put(FETCHER_LRU_CHECK_NUM, 1L);
             threadsTimes.add(tmp);
         }
         System.out.println("test");
