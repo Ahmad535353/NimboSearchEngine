@@ -19,4 +19,7 @@ public class Constants {
     public final static String ELASTIC_INDEX_NAME =  "myindex";
     public final static String ELASTIC_TYPE_NAME =  "mytype";
 
+    public final static String MONITOR_HOST =  "server1";
+    public final static int MONITOR_PORT =  7788;
+
 }

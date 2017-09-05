@@ -29,7 +29,7 @@ public class HBaseSample extends Configured implements Tool, Storage {
     private Connection CONN;
     private BufferedMutator mutator;
     private String mRowKey;
-    private ArrayList<Map.Entry<String, String>> mLinks;
+    private Map.Entry<String, String>[] mLinks;
     private Table mTable;
 
     public HBaseSample(String tableName, String familyName) {
@@ -63,7 +63,7 @@ public class HBaseSample extends Configured implements Tool, Storage {
     @Override
     public int run(String[] args) {
         Put put = new Put(Bytes.toBytes(mRowKey));
-        if (mLinks.size() == 0)
+        if (mLinks.length == 0)
             return 0;
 
         for (Map.Entry<String, String> e : mLinks) {
@@ -79,7 +79,7 @@ public class HBaseSample extends Configured implements Tool, Storage {
         return 0;
     }
 
-    public void addLinks(String rowKey, ArrayList<Map.Entry<String, String>> links) {
+    public void addLinks(String rowKey, Map.Entry<String, String>[] links) {
         mRowKey = rowKey;
         mLinks = links;
         try {

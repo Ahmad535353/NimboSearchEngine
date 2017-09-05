@@ -11,6 +11,7 @@ import storage.HBase;
 import storage.Storage;
 import utils.Constants;
 import utils.Pair;
+import utils.Prints;
 import utils.Statistics;
 
 
@@ -42,7 +43,7 @@ public class Fetcher implements Runnable {
             try {
                 link = takeUrl();
             } catch (InterruptedException e) {
-                logger.error("Fetcher {} couldn't take link from queue\n{}.", threadNum, e.getStackTrace());
+                logger.error("Fetcher {} couldn't take link from queue\n{}.", threadNum, Prints.getPrintStackTrace(e));
                 continue;
             }
             if (link == null || link.isEmpty()) {
@@ -54,7 +55,8 @@ public class Fetcher implements Runnable {
             try {
                 domain = getDomainIfLruAllowed(link);
             } catch (Exception e) {
-                logger.error("Fetcher {} couldn't extract domain {}\n{}.", threadNum, link, e.getStackTrace());
+                logger.error("Fetcher {} couldn't extract domain {}\n{}.", threadNum, link
+                        , Prints.getPrintStackTrace(e));
             }
             if (domain == null) {
                 ProducerApp.send(Constants.URL_TOPIC, link);
@@ -62,11 +64,12 @@ public class Fetcher implements Runnable {
             }
 
             try {
-                if (storage.exists(link)) {
+                if (CheckWithHBase(link)) {
                     continue;
                 }
             } catch (IOException e) {
-                logger.error("Fetcher {} couldn't check with HBase {}\n{}.", threadNum, link, e.getStackTrace());
+                logger.error("Fetcher {} couldn't check with HBase {}\n{}.", threadNum, link
+                        , Prints.getPrintStackTrace(e));
                 ProducerApp.send(Constants.URL_TOPIC, link);
                 continue;
             }
@@ -77,9 +80,9 @@ public class Fetcher implements Runnable {
             try {
                 document = fetch(link);
             } catch (IOException e) {
-                Statistics.getInstance().addFailedToFetch(threadNum);
+                Statistics.getInstance().addFetcherFailedToFetch(threadNum);
                 logger.error("Fetcher {} timeout reached or connection refused. couldn't connect to {}:\n{}"
-                        , threadNum, link, e.getStackTrace());
+                        , threadNum, link, Prints.getPrintStackTrace(e));
                 continue;
             }
 
@@ -88,32 +91,23 @@ public class Fetcher implements Runnable {
             try {
                 putFetchedData(fetchedData);
             } catch (InterruptedException e) {
-                logger.error("Fetcher {} while putting fetched data in queue:\n{}", threadNum, e.getStackTrace());
+                logger.error("Fetcher {} while putting fetched data in queue:\n{}", threadNum
+                        , Prints.getPrintStackTrace(e));
                 continue;
             }
         }
     }
 
     private String takeUrl() throws InterruptedException {
-        String link = null;
         long time = System.currentTimeMillis();
 
-        link = Crawler.urlQueue.take();
+        String link = Crawler.urlQueue.take();
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addUrlTakeQTime(time, threadNum);
+        Statistics.getInstance().addFetcherTakeUrlTime(time, threadNum);
         logger.info("{} took {} from Q in time {}ms", threadNum, link, time);
 
         return link;
-    }
-
-    private void putFetchedData(Pair<String, Document> forParseData) throws InterruptedException {
-
-        long time = System.currentTimeMillis();
-        Crawler.fetchedData.put(forParseData);
-        time = System.currentTimeMillis() - time;
-
-//        Statistics.getInstance().addUrlTakeQTime(time,threadNum);
     }
 
     private String getDomainIfLruAllowed(String link) throws IllegalArgumentException, IllegalStateException, MalformedURLException {
@@ -131,16 +125,26 @@ public class Fetcher implements Runnable {
         boolean exist = LruCache.getInstance().exist(domain);
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addLruCheckTime(time, threadNum);
+        Statistics.getInstance().addFetcherLruCheckTime(time, threadNum);
 
         if (exist) {
             logger.info("Fetcher {} domain {} is not allowed. Back to Queue", threadNum, domain);
-            Statistics.getInstance().addFailedLru(threadNum);
+            Statistics.getInstance().addFetcherFailedLru(threadNum);
             return null;
         } else {
             logger.info("Fetcher {} domain {} is allowed.", threadNum, domain);
             return domain;
         }
+    }
+
+    private boolean CheckWithHBase(String link) throws IOException {
+        long time = System.currentTimeMillis();
+
+        boolean result = storage.exists(link);
+
+        time = System.currentTimeMillis() - time;
+        Statistics.getInstance().addFetcherHBaseCheckTime(time,threadNum);
+        return result;
     }
 
     private Document fetch(String link) throws IOException {
@@ -150,8 +154,18 @@ public class Fetcher implements Runnable {
                 .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0")
                 .ignoreHttpErrors(true).timeout(Constants.FETCH_TIMEOUT).get();
         connectTime = System.currentTimeMillis() - connectTime;
-        Statistics.getInstance().addFetchTime(connectTime, threadNum);
+        Statistics.getInstance().addFetcherFetchTime(connectTime, threadNum);
         logger.info("{} connected in {}ms to {}", threadNum, connectTime, link);
         return doc;
+    }
+
+    private void putFetchedData(Pair<String, Document> forParseData) throws InterruptedException {
+        long time = System.currentTimeMillis();
+
+        Crawler.fetchedData.put(forParseData);
+
+        time = System.currentTimeMillis() - time;
+
+        Statistics.getInstance().addFetcherPutFetchedDataTime(time, threadNum);
     }
 }

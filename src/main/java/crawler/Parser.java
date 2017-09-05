@@ -45,13 +45,14 @@ public class Parser implements Runnable {
             try {
                 fetchedData = takeFetchedData();
             } catch (InterruptedException e) {
-                logger.error("Parser {} while taking fetched data from queue:\n{}",threadNum, Prints.getPrintStackTrace(e));
+                logger.error("Parser {} while taking fetched data from queue:\n{}",threadNum
+                        , Prints.getPrintStackTrace(e));
                 continue;
             }
 
 
 
-
+            long time = System.currentTimeMillis();
 
             link = fetchedData.getKey();
             document = fetchedData.getValue();
@@ -65,8 +66,8 @@ public class Parser implements Runnable {
 
             linkAnchors = extractLinkAnchors(document);
 
-
-
+            time = System.currentTimeMillis() - time;
+            Statistics.getInstance().addParserParseTime(time, threadNum);
 
 
             putToElastic(link, title, content);
@@ -89,8 +90,7 @@ public class Parser implements Runnable {
         long time = System.currentTimeMillis();
         fetchedData = Crawler.fetchedData.take();
         time = System.currentTimeMillis() - time;
-
-//            Statistics.getInstance().addUrlTakeQTime(time,threadNum);
+        Statistics.getInstance().addParserTakeFetchedData(time,threadNum);
         return fetchedData;
     }
 
@@ -109,17 +109,30 @@ public class Parser implements Runnable {
         return (Pair<String, String>[])linksAnchors.toArray();
     }
 
+    private void putToElastic(String link, String title, String content) {
+        long time = System.currentTimeMillis();
+
+        Crawler.elasticEngine.IndexData(link, content, title, Constants.ELASTIC_INDEX_NAME
+                , Constants.ELASTIC_TYPE_NAME);
+
+        time = System.currentTimeMillis() - time;
+        Statistics.getInstance().addParserElasticPutTime(time,threadNum);
+        logger.info("Parser {} data added to elastic in {}ms for {}",threadNum,time,link);
+    }
+
     private void putAnchorsToHBase(String link, Pair<String, String>[] linkAnchors) throws IOException {
         long time = System.currentTimeMillis();
 
         storage.addLinks(link,linkAnchors);
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addHbasePutTime(time,threadNum);
+        Statistics.getInstance().addParserHBasePutTime(time,threadNum);
         logger.info("Parser {} data added to HBase in {}ms for {}",threadNum,time,link);
     }
 
     private void CheckWithHBase(Pair<String, String>[] linkAnchors) {
+        long time = System.currentTimeMillis();
+
         for (int i = 0; i < linkAnchors.length; i++) {
             try {
                 if(storage.exists(linkAnchors[i].getKey())) {
@@ -130,6 +143,8 @@ public class Parser implements Runnable {
                         , Prints.getPrintStackTrace(e));
             }
         }
+        time = System.currentTimeMillis() - time;
+        Statistics.getInstance().addParserHBaseCheckTime(time,threadNum);
     }
 
     private void putToKafka(Pair<String, String>[] linkAnchors) {
@@ -140,16 +155,6 @@ public class Parser implements Runnable {
             }
         }
         time = System.currentTimeMillis() - time;
-    }
-
-    private void putToElastic(String link, String title, String content) {
-        long time = System.currentTimeMillis();
-
-        Crawler.elasticEngine.IndexData(link, content, title, Constants.ELASTIC_INDEX_NAME
-                , Constants.ELASTIC_TYPE_NAME);
-
-        time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addElasticPutTime(time,threadNum);
-        logger.info("Parser {} data added to elastic in {}ms for {}",threadNum,time,link);
+        Statistics.getInstance().addParserKafkaPutTime(time,threadNum);
     }
 }
