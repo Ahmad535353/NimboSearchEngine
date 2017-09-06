@@ -57,6 +57,12 @@ public class HBase implements Storage {
                 linkAnchors[i] = null;
     }
 
+    @Override
+    public boolean exists(String rowKey) throws IOException {
+        Get get = new Get(Bytes.toBytes(rowKey));
+        return table.exists(get);
+    }
+
     public void sAddLinks(String url, Map.Entry<String, String>[] links) throws IOException {
         Table temp = table;
         table = createTable(tableName);

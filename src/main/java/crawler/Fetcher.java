@@ -143,7 +143,7 @@ public class Fetcher implements Runnable {
         boolean result = storage.exists(link);
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addFetcherHBaseCheckTime(time,threadNum);
+        Statistics.getInstance().addFetcherHBaseCheckTime(time, threadNum);
         return result;
     }
 

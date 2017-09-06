@@ -1,10 +1,12 @@
 package storage;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import utils.Pair;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -13,7 +15,7 @@ import java.util.Map;
 /**
  * @author amirphl
  */
-public class HBaseSample {
+public class HBaseSample implements Storage {
 
     private TableName tableName;
     private Table mTable;
@@ -58,6 +60,12 @@ public class HBaseSample {
         for (int i = 0; i < linkAnchors.length; i++)
             if (result[i] == true)
                 linkAnchors[i] = null;
+    }
+
+    @Override
+    public boolean exists(String rowKey) throws IOException {
+        Get get = new Get(Bytes.toBytes(rowKey));
+        return mTable.exists(get);
     }
 
     public void closeConnection() throws IOException {
