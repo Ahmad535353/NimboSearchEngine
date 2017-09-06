@@ -1,121 +1,68 @@
 package storage;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
-
+import utils.Pair;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
 
-
 /**
- * An example of using the {@link BufferedMutator} interface.
- * We can run this class on our host and connect to
- * remote host ( host which hbase master is started on it ) ,
- * then transfer data to hbase .
+ * @author amirphl
  */
-public class HBaseSample extends Configured implements Tool, Storage {
+public class HBaseSample {
 
-//    private static Logger logger = LoggerFactory.getLogger(crawler.Crawler.class);
-    private TableName tableName = TableName.valueOf("aTest");
-    private byte[] familyName = Bytes.toBytes("f1");
-    private Connection CONN;
-    private BufferedMutator mutator;
-    private String mRowKey;
-    private Map.Entry<String, String>[] mLinks;
+    private TableName tableName;
     private Table mTable;
+    private static Connection CONN;
+    private BufferedMutator mutator;
+    private Map.Entry<String, String>[] mLinks;
+    private byte[] familyName;
 
-    public HBaseSample(String tableName, String familyName) {
+    public HBaseSample(String tableName, String familyName) throws IOException {
         this.tableName = TableName.valueOf(tableName);
         this.familyName = Bytes.toBytes(familyName);
-        /** a callback invoked when an asynchronous write fails. */
-        BufferedMutator.ExceptionListener listener = new BufferedMutator.ExceptionListener() {
-            @Override
-            public void onException(RetriesExhaustedWithDetailsException e, BufferedMutator mutator) {
-                for (int i = 0; i < e.getNumExceptions(); i++) {
-//                    logger.info("Failed to sent put " + e.getRow(i) + ".");
-                }
-            }
-        };
 
-        BufferedMutatorParams params = new BufferedMutatorParams(this.tableName)
-                .listener(listener);
-
-        Configuration config = HBaseConfiguration.create();
-        config.set("hbase.zookeeper.quorum", "server1"); //176.31.102.177
-        config.set("hbase.zookeeper.property.clientPort", "2181"); //2181
-        try {
+        if (CONN == null) {
+            Configuration config = HBaseConfiguration.create();
+            config.set("hbase.zookeeper.quorum", "server1"); //176.31.102.177
+            config.set("hbase.zookeeper.property.clientPort", "2181"); //2181
             CONN = ConnectionFactory.createConnection(config);
-            mutator = CONN.getBufferedMutator(params);
-            mTable = CONN.getTable(this.tableName);
-        } catch (IOException e) {
-//            logger.error(e.getMessage());
         }
+
+        mutator = CONN.getBufferedMutator(new BufferedMutatorParams(this.tableName));
+        mTable = CONN.getTable(this.tableName);
     }
 
-    @Override
-    public int run(String[] args) {
-        Put put = new Put(Bytes.toBytes(mRowKey));
+    public void addLinks(String rowKey, Map.Entry<String, String>[] links) throws IOException {
         if (mLinks.length == 0)
-            return 0;
+            return;
 
-        for (Map.Entry<String, String> e : mLinks) {
-            put.addColumn(familyName,
-                    Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
-        }
-        try {
-            mutator.mutate(put);
-            mutator.flush();
-        } catch (IOException e) {
-//            logger.error(e.getMessage());
-        }
-        return 0;
+        Put put = new Put(Bytes.toBytes(rowKey));
+        for (Map.Entry<String, String> e : mLinks)
+            put.addColumn(familyName, Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
+        mutator.mutate(put);
     }
 
-    public void addLinks(String rowKey, Map.Entry<String, String>[] links) {
-        mRowKey = rowKey;
-        mLinks = links;
-        try {
-            ToolRunner.run(this, null);
-        } catch (Exception e) {
-//            logger.error(e.getMessage());
-        }
+    public void existsAll(Pair<String, String>[] linkAnchors) throws IOException {
+        ArrayList<Get> arrayList = new ArrayList<>();
+
+        for (int i = 0; i < linkAnchors.length; i++)
+            arrayList.add(new Get(Bytes.toBytes(linkAnchors[i].getKey())));
+
+        boolean[] result = mTable.existsAll(arrayList);
+
+        for (int i = 0; i < linkAnchors.length; i++)
+            if (result[i] == true)
+                linkAnchors[i] = null;
     }
 
-    public boolean createRowAndCheck(String rowkey) throws IOException {
-        if (!exists(rowkey)) {
-            Put p = new Put(Bytes.toBytes(rowkey));
-            p.addColumn(familyName, Bytes.toBytes("redundant-column"), Bytes.toBytes(""));
-            try {
-                mutator.mutate(p);
-                mutator.flush();
-            } catch (IOException e) {
-//                logger.error(e.getMessage());
-            }
-            return false;
-        }
-        return true;
-    }
-
-    public boolean exists(String rowKey) throws IOException {
-        Get get = new Get(Bytes.toBytes(rowKey));
-        return mTable.exists(get);
-    }
-
-    public void closeConnection() {
-        try {
-            mTable.close();
-            mutator.close();
-            CONN.close();
-        } catch (IOException e) {
-//            logger.error(e.getMessage());
-        }
+    public void closeConnection() throws IOException {
+        mTable.close();
+        mutator.close();
+        CONN.close();
     }
 }
