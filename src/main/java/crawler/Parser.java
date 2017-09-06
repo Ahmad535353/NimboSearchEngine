@@ -1,5 +1,8 @@
 package crawler;
 
+import com.cybozu.labs.langdetect.Detector;
+import com.cybozu.labs.langdetect.DetectorFactory;
+import com.cybozu.labs.langdetect.LangDetectException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
@@ -11,6 +14,7 @@ import utils.Constants;
 import utils.Pair;
 import utils.Prints;
 import utils.Statistics;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -33,6 +37,15 @@ public class Parser implements Runnable {
     @Override
     public void run() {
         logger.info("parser {} Started.", threadNum);
+
+        Detector detector = null;
+
+        try {
+            detector = DetectorFactory.create();
+        } catch (LangDetectException e) {
+            e.printStackTrace();
+        }
+
         while (true) {
             String link;
             String title;
@@ -61,6 +74,24 @@ public class Parser implements Runnable {
                 contentBuilder.append(element.text() + "\n");
             }
             content = contentBuilder.toString();
+
+
+            detector.append(content);
+            String l = null;
+            try {
+                l = detector.detect();
+                if (!l.equals("en")) {
+                    continue;
+                }
+            } catch (LangDetectException e) {
+                e.printStackTrace();
+                continue;
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            System.out.println("amirphl" + l);
 
             linkAnchors = extractLinkAnchors(document);
 
