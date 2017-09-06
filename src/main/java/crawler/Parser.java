@@ -1,5 +1,8 @@
 package crawler;
 
+import com.cybozu.labs.langdetect.Detector;
+import com.cybozu.labs.langdetect.DetectorFactory;
+import com.cybozu.labs.langdetect.LangDetectException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
@@ -36,11 +39,11 @@ public class Parser implements Runnable {
 
         Detector detector = null;
 
-        try {
-            detector = DetectorFactory.create();
-        } catch (LangDetectException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            detector = DetectorFactory.create();
+//        } catch (LangDetectException e) {
+//            e.printStackTrace();
+//        }
 
         while (true){
             String link;
@@ -72,30 +75,31 @@ public class Parser implements Runnable {
             content = contentBuilder.toString();
 
 
-            detector.append(content);
-            String l = null;
-            try {
-                l = detector.detect();
-                if (!l.equals("en")) {
-                    continue;
-                }
-            } catch (LangDetectException e) {
-                e.printStackTrace();
-                continue;
-            } catch (NullPointerException e) {
-                e.printStackTrace();
-                continue;
-            }
+//            detector.append(content);
 
-            System.out.println("amirphl" + l);
+//            String l = null;
+//            try {
+//                l = detector.detect();
+//                if (!l.equals("en")) {
+//                    continue;
+//                }
+//            } catch (LangDetectException e) {
+//                e.printStackTrace();
+//                continue;
+//            } catch (NullPointerException e) {
+//                e.printStackTrace();
+//                continue;
+//            }
+//
+//            System.out.println("amirphl" + l);
 
-            linkAnchors = extractLinkAnchors(document);
+            linkAnchors = extractLinkAnchors(document).toArray(new Pair[0]);
 
             time = System.currentTimeMillis() - time;
             Statistics.getInstance().addParserParseTime(time, threadNum);
 
 
-            putToElastic(link, title, content);
+//            putToElastic(link, title, content);
 
             try {
                 putAnchorsToHBase(link, linkAnchors);
@@ -119,7 +123,7 @@ public class Parser implements Runnable {
         return fetchedData;
     }
 
-    private Pair<String, String>[] extractLinkAnchors(Document document) {
+    private Set<Pair<String, String>> extractLinkAnchors(Document document) {
         Set<Pair<String, String>> linksAnchors = new HashSet<>();
         for (Element element : document.select("a[href]")) {
             String extractedLink = element.attr("abs:href");

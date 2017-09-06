@@ -25,11 +25,13 @@ public class Crawler {
         urlQueue = new ArrayBlockingQueue<String>(Constants.URL_QUEUE_SIZE);
         fetchedData = new ArrayBlockingQueue<>(Constants.FETCHED_DATA_QUEUE_SIZE);
         logger = LoggerFactory.getLogger(Crawler.class);
-        elasticEngine = new Elastic();
+//        elasticEngine = new Elastic();
     }
 
     public static void main(String args[]) throws InterruptedException, LangDetectException {
-        DetectorFactory.loadProfile("/home/nimbo_search/amirphl/profiles");
+
+//        DetectorFactory.loadProfile("/home/nimbo_search/amirphl/profiles");
+
         logger.info("Seed added.");
         ProducerApp.send(Constants.URL_TOPIC, "https://en.wikipedia.org/wiki/Main_Page");
         ProducerApp.send(Constants.URL_TOPIC, "https://us.yahoo.com/");
