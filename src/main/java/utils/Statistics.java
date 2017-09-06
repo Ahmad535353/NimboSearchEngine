@@ -89,7 +89,7 @@ public class Statistics implements Runnable{
             statLog.info("Parser{} parse time is {} and parse num {}",i,first,second);
             statLog.info("Parser{} average parse time is : {}",i,first/second);
             addToTotal(PARSER_TAKE_FETCHED_DATA_TIME,first);
-            addToTotal(PARSER_TAKE_FETCHED_DATA_TIME,second);
+            addToTotal(PARSER_TAKE_FETCHED_DATA_NUM,second);
 
             first = thread.get(PARSER_PARSE_TIME);
             second = thread.get(PARSER_PARSE_NUM);
@@ -174,44 +174,44 @@ public class Statistics implements Runnable{
             addToTotal(FETCHER_PUT_FETCHED_DATA_NUM,second);
         }
 
-        first = newTotal.get(PARSER_PARSE_NUM);
-        second =  newTotal.get(PARSER_PARSE_TIME);
-        avgStatLogger.info("{} links parsed in {}ms", first,second);
-        avgStatLogger.info("average links/sec is {}", second/first);
+//        first = newTotal.get(PARSER_PARSE_NUM);
+//        second =  newTotal.get(PARSER_PARSE_TIME);
+//        avgStatLogger.info("{} links parsed in {}ms", first,second);
+//        avgStatLogger.info("average links/sec is {}", second/first);
 
 
-        first = newTotal.get(URL_PUT_Q_NUM);
-        second = newTotal.get(URL_PUT_Q_TIME);
-        avgStatLogger.info("{} links added in Kafka in {}ms", first,second);
-        avgStatLogger.info("average links/sec added in Kafka is {}", second/first);
-
-        first = newTotal.get(FETCHER_HBASE_CHECK_NUM);
-        second = newTotal.get(FETCHER_HBASE_CHECK_TIME);
-        avgStatLogger.info("{} links checked with HBase in {}ms", first,second);
-        avgStatLogger.info("average links/sec checked with HBase is {}", second/first);
-
-        first = newTotal.get(PARSER_HBASE_PUT_NUM);
-        second = newTotal.get(PARSER_HBASE_PUT_TIME);
-        avgStatLogger.info("{} links added to HBase in {}ms", first,second);
-        avgStatLogger.info("average links/sec added to HBase is {}", second/first);
-
-        first = newTotal.get(PARSER_ELASTIC_PUT_NUM);
-        second = newTotal.get(PARSER_ELASTIC_PUT_TIME);
-        avgStatLogger.info("{} links added to Elastic in {}ms", first,second);
-        avgStatLogger.info("average links/sec added to Elastic is {}", second/first);
-
-        first = newTotal.get(FETCHER_FETCH_NUM);
-        second = newTotal.get(FETCHER_FETCH_TIME);
-        avgStatLogger.info("{} links fetched in {}ms", first,second);
-        avgStatLogger.info("average fetch time is {}", second/first);
-
-        first = newTotal.get(FETCHER_TAKE_URL_NUM);
-        second = newTotal.get(FETCHER_TAKE_URL_TIME);
-        avgStatLogger.info("{} links taked from buffer in {}ms", first,second);
-        avgStatLogger.info("average buffer time is {}", second/first);
-
-        first = newTotal.get(FETCHER_FAILED_TO_FETCH_NUM);
-        avgStatLogger.info("failed to connect to {} links\n", first);
+//        first = newTotal.get(URL_PUT_Q_NUM);
+//        second = newTotal.get(URL_PUT_Q_TIME);
+//        avgStatLogger.info("{} links added in Kafka in {}ms", first,second);
+//        avgStatLogger.info("average links/sec added in Kafka is {}", second/first);
+//
+//        first = newTotal.get(FETCHER_HBASE_CHECK_NUM);
+//        second = newTotal.get(FETCHER_HBASE_CHECK_TIME);
+//        avgStatLogger.info("{} links checked with HBase in {}ms", first,second);
+//        avgStatLogger.info("average links/sec checked with HBase is {}", second/first);
+//
+//        first = newTotal.get(PARSER_HBASE_PUT_NUM);
+//        second = newTotal.get(PARSER_HBASE_PUT_TIME);
+//        avgStatLogger.info("{} links added to HBase in {}ms", first,second);
+//        avgStatLogger.info("average links/sec added to HBase is {}", second/first);
+//
+//        first = newTotal.get(PARSER_ELASTIC_PUT_NUM);
+//        second = newTotal.get(PARSER_ELASTIC_PUT_TIME);
+//        avgStatLogger.info("{} links added to Elastic in {}ms", first,second);
+//        avgStatLogger.info("average links/sec added to Elastic is {}", second/first);
+//
+//        first = newTotal.get(FETCHER_FETCH_NUM);
+//        second = newTotal.get(FETCHER_FETCH_TIME);
+//        avgStatLogger.info("{} links fetched in {}ms", first,second);
+//        avgStatLogger.info("average fetch time is {}", second/first);
+//
+//        first = newTotal.get(FETCHER_TAKE_URL_NUM);
+//        second = newTotal.get(FETCHER_TAKE_URL_TIME);
+//        avgStatLogger.info("{} links taked from buffer in {}ms", first,second);
+//        avgStatLogger.info("average buffer time is {}", second/first);
+//
+//        first = newTotal.get(FETCHER_FAILED_TO_FETCH_NUM);
+//        avgStatLogger.info("failed to connect to {} links\n", first);
 
         if (oldTotal != null){
             realtimeStatistic = new ConcurrentHashMap<>();
@@ -223,7 +223,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(PARSER_TAKE_FETCHED_DATA_TIME, second);
             periodLogger.info("Parser: {} fetchedLink taken from queue in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
 
             first = newTotal.get(PARSER_PARSE_NUM) - oldTotal.get(PARSER_PARSE_NUM);
@@ -232,7 +232,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(PARSER_PARSE_TIME, second);
             periodLogger.info("Parser: {} fetchedLink parsed in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
 
             first = newTotal.get(PARSER_ELASTIC_PUT_NUM) - oldTotal.get(PARSER_ELASTIC_PUT_NUM);
@@ -241,7 +241,8 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(PARSER_ELASTIC_PUT_TIME, second);
             periodLogger.info("Parser: {} links added in Elastic in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
+            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(PARSER_HBASE_PUT_NUM) - oldTotal.get(PARSER_HBASE_PUT_NUM);
             second = newTotal.get(PARSER_HBASE_PUT_TIME) - oldTotal.get(PARSER_HBASE_PUT_TIME);
@@ -249,7 +250,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(PARSER_HBASE_PUT_TIME, second);
             periodLogger.info("Parser: {} links putted in HBase in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
             first = newTotal.get(PARSER_HBASE_CHECK_NUM) - oldTotal.get(PARSER_HBASE_CHECK_NUM);
             second = newTotal.get(PARSER_HBASE_CHECK_TIME) - oldTotal.get(PARSER_HBASE_CHECK_TIME);
@@ -257,7 +258,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(PARSER_HBASE_CHECK_TIME, second);
             periodLogger.info("Parser: {} links checked with HBase in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
             first = newTotal.get(PARSER_KAFKA_PUT_NUM) - oldTotal.get(PARSER_KAFKA_PUT_NUM);
             second = newTotal.get(PARSER_KAFKA_PUT_TIME) - oldTotal.get(PARSER_KAFKA_PUT_TIME);
@@ -265,7 +266,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(PARSER_KAFKA_PUT_TIME, second);
             periodLogger.info("Parser: {} links putted in kafka in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
 
             first = newTotal.get(FETCHER_TAKE_URL_NUM) - oldTotal.get(FETCHER_TAKE_URL_NUM);
@@ -274,7 +275,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(FETCHER_TAKE_URL_TIME, second);
             periodLogger.info("Fetcher: {} links taken from queue in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
             first = newTotal.get(FETCHER_LRU_CHECK_NUM) - oldTotal.get(FETCHER_LRU_CHECK_NUM);
             second = newTotal.get(FETCHER_LRU_CHECK_TIME) - oldTotal.get(FETCHER_LRU_CHECK_TIME);
@@ -282,7 +283,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(FETCHER_LRU_CHECK_TIME, second);
             periodLogger.info("Fetcher: {} links checked with lru in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
             first = newTotal.get(FETCHER_FAILED_LRU_NUM) - oldTotal.get(FETCHER_FAILED_LRU_NUM);
             realtimeStatistic.put(FETCHER_FAILED_LRU_NUM, first);
@@ -294,7 +295,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(FETCHER_HBASE_CHECK_TIME, second);
             periodLogger.info("Fetcher: {} links checked with HBase in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
             first = newTotal.get(FETCHER_FETCH_NUM) - oldTotal.get(FETCHER_FETCH_NUM);
             second = newTotal.get(FETCHER_FETCH_TIME) - oldTotal.get(FETCHER_FETCH_TIME);
@@ -302,9 +303,8 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(FETCHER_FETCH_TIME, second);
             periodLogger.info("Fetcher: {} links fetched in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
-            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(FETCHER_FAILED_TO_FETCH_NUM) - oldTotal.get(FETCHER_FAILED_TO_FETCH_NUM);
             realtimeStatistic.put(FETCHER_FAILED_TO_FETCH_NUM, first);
@@ -316,7 +316,7 @@ public class Statistics implements Runnable{
             realtimeStatistic.put(FETCHER_PUT_FETCHED_DATA_TIME, second);
             periodLogger.info("Fetcher: {} fetchedLinks putted in queue in {}ms", first,second);
             if (first != 0)
-                periodLogger.info("\taverage Speed = {} link/ms", second/first);
+                periodLogger.info("\taverage time per link = {} ms/link", second/first);
 
             periodLogger.info("links in wait: {}", Crawler.urlQueue.size());
             periodLogger.info("documents in wait: {}", Crawler.fetchedData.size());

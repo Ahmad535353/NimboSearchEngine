@@ -79,7 +79,7 @@ public class Fetcher implements Runnable {
             Document document = null;
             try {
                 document = fetch(link);
-            } catch (IOException e) {
+            } catch (IOException | IllegalArgumentException | IllegalStateException e) {
                 Statistics.getInstance().addFetcherFailedToFetch(threadNum);
                 logger.error("Fetcher {} timeout reached or connection refused. couldn't connect to {}:\n{}"
                         , threadNum, link, Prints.getPrintStackTrace(e));
@@ -147,7 +147,7 @@ public class Fetcher implements Runnable {
         return result;
     }
 
-    private Document fetch(String link) throws IOException {
+    private Document fetch(String link) throws IOException, IllegalStateException, IllegalArgumentException {
         logger.info("{} connecting to {} ... ", threadNum, link);
         Long connectTime = System.currentTimeMillis();
         Document doc = Jsoup.connect(link)

@@ -66,22 +66,13 @@ public class ConsumerApp extends Thread {
                 }
             }
 
-//            while (Crawler.urlQueue.remainingCapacity() > 200) {
+//            while (Crawler.urlQueue.remainingCapacity() > 150) {
 //
 //                ConsumerRecords<String, String> records = consumer.poll(50);
 //
 //                for (ConsumerRecord<String, String> record : records) {
 //                    try {
-////                    while (Crawler.urlQueue.remainingCapacity() <= 10) {
-////                        consumer.pause(consumer.assignment());
-////                        consumer.poll(1);
-////                        Thread.sleep(100);
-////                    }
-////
-////                    consumer.resume(consumer.assignment());
-//
 //                        Crawler.urlQueue.put(record.value());
-//
 //                    } catch (IllegalStateException e) {
 ////                    logger.error("{}", e.getMessage());
 //                    } catch (InterruptedException e) {

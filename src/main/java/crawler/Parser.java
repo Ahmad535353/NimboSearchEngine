@@ -1,8 +1,5 @@
 package crawler;
 
-import com.cybozu.labs.langdetect.Detector;
-import com.cybozu.labs.langdetect.DetectorFactory;
-import com.cybozu.labs.langdetect.LangDetectException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
@@ -14,7 +11,6 @@ import utils.Constants;
 import utils.Pair;
 import utils.Prints;
 import utils.Statistics;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -36,7 +32,7 @@ public class Parser implements Runnable {
 
     @Override
     public void run() {
-        logger.info("parser {} Started.", threadNum);
+        logger.info("parser {} Started.",threadNum);
 
         Detector detector = null;
 
@@ -46,7 +42,7 @@ public class Parser implements Runnable {
             e.printStackTrace();
         }
 
-        while (true) {
+        while (true){
             String link;
             String title;
             String content;
@@ -135,7 +131,15 @@ public class Parser implements Runnable {
             linkAnchor.setKeyVal(extractedLink, anchor);
             linksAnchors.add(linkAnchor);
         }
-        return (Pair<String, String>[]) linksAnchors.toArray();
+        return linksAnchors;
+//        Pair<String, String>[] result;
+//        if(linksAnchors.isEmpty()){
+//            result = new Pair[0];
+//        } else {
+//            Pair<String, String>[] r = (Pair<String, String>[]) linksAnchors.toArray();
+//            result = r;
+//        }
+//        return result;
     }
 
     private void putToElastic(String link, String title, String content) {
