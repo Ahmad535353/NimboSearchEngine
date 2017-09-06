@@ -24,17 +24,17 @@ public class Parser implements Runnable {
     Parser(int threadNum) {
         this.threadNum = threadNum;
         try {
-            storage = new HBase(Constants.HBASE_TABLE_NAME,Constants.HBASE_FAMILY_NAME);
+            storage = new HBase(Constants.HBASE_TABLE_NAME, Constants.HBASE_FAMILY_NAME);
         } catch (IOException e) {
             e.printStackTrace();
         }
         //    storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_TABLE_NAME);
-}
+    }
 
     @Override
     public void run() {
-        logger.info("parser {} Started.",threadNum);
-        while (true){
+        logger.info("parser {} Started.", threadNum);
+        while (true) {
             String link;
             String title;
             String content;
@@ -45,11 +45,10 @@ public class Parser implements Runnable {
             try {
                 fetchedData = takeFetchedData();
             } catch (InterruptedException e) {
-                logger.error("Parser {} while taking fetched data from queue:\n{}",threadNum
+                logger.error("Parser {} while taking fetched data from queue:\n{}", threadNum
                         , Prints.getPrintStackTrace(e));
                 continue;
             }
-
 
 
             long time = System.currentTimeMillis();
@@ -59,7 +58,7 @@ public class Parser implements Runnable {
             title = document.title();
 
             StringBuilder contentBuilder = new StringBuilder();
-            for (Element element : document.select("p")){
+            for (Element element : document.select("p")) {
                 contentBuilder.append(element.text() + "\n");
             }
             content = contentBuilder.toString();
@@ -90,11 +89,11 @@ public class Parser implements Runnable {
         long time = System.currentTimeMillis();
         fetchedData = Crawler.fetchedData.take();
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addParserTakeFetchedData(time,threadNum);
+        Statistics.getInstance().addParserTakeFetchedData(time, threadNum);
         return fetchedData;
     }
 
-    private Pair<String, String>[] extractLinkAnchors (Document document){
+    private Pair<String, String>[] extractLinkAnchors(Document document) {
         Set<Pair<String, String>> linksAnchors = new HashSet<>();
         for (Element element : document.select("a[href]")) {
             String extractedLink = element.attr("abs:href");
@@ -106,7 +105,7 @@ public class Parser implements Runnable {
             linkAnchor.setKeyVal(extractedLink, anchor);
             linksAnchors.add(linkAnchor);
         }
-        return (Pair<String, String>[])linksAnchors.toArray();
+        return (Pair<String, String>[]) linksAnchors.toArray();
     }
 
     private void putToElastic(String link, String title, String content) {
@@ -116,45 +115,53 @@ public class Parser implements Runnable {
                 , Constants.ELASTIC_TYPE_NAME);
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addParserElasticPutTime(time,threadNum);
-        logger.info("Parser {} data added to elastic in {}ms for {}",threadNum,time,link);
+        Statistics.getInstance().addParserElasticPutTime(time, threadNum);
+        logger.info("Parser {} data added to elastic in {}ms for {}", threadNum, time, link);
     }
 
     private void putAnchorsToHBase(String link, Pair<String, String>[] linkAnchors) throws IOException {
         long time = System.currentTimeMillis();
 
-        storage.addLinks(link,linkAnchors);
+        storage.addLinks(link, linkAnchors);
 
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addParserHBasePutTime(time,threadNum);
-        logger.info("Parser {} data added to HBase in {}ms for {}",threadNum,time,link);
+        Statistics.getInstance().addParserHBasePutTime(time, threadNum);
+        logger.info("Parser {} data added to HBase in {}ms for {}", threadNum, time, link);
     }
 
     private void CheckWithHBase(Pair<String, String>[] linkAnchors) {
         long time = System.currentTimeMillis();
 
-        for (int i = 0; i < linkAnchors.length; i++) {
-            try {
-                if(storage.exists(linkAnchors[i].getKey())) {
-                    linkAnchors[i] = null;
-                }
-            } catch (IOException e) {
-                logger.error("Parser {} couldn't check with HBase {}\n{}.", threadNum, linkAnchors[i].getKey()
-                        , Prints.getPrintStackTrace(e));
-            }
+//        for (int i = 0; i < linkAnchors.length; i++) {
+//            try {
+//                if(storage.exists(linkAnchors[i].getKey())) {
+//                    linkAnchors[i] = null;
+//                }
+//            } catch (IOException e) {
+//                logger.error("Parser {} couldn't check with HBase {}\n{}.", threadNum, linkAnchors[i].getKey()
+//                        , Prints.getPrintStackTrace(e));
+//            }
+//        }
+
+        try {
+            storage.existsAll(linkAnchors);
+        } catch (IOException e) {
+            logger.error("Parser {} couldn't check with HBase\n{}.", threadNum
+                    , Prints.getPrintStackTrace(e));
         }
+
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addParserHBaseCheckTime(time,threadNum);
+        Statistics.getInstance().addParserHBaseCheckTime(time, threadNum);
     }
 
     private void putToKafka(Pair<String, String>[] linkAnchors) {
         long time = System.currentTimeMillis();
-        for(Pair<String, String> linkAnchor : linkAnchors) {
-            if(linkAnchor != null) {
+        for (Pair<String, String> linkAnchor : linkAnchors) {
+            if (linkAnchor != null) {
                 ProducerApp.send(Constants.URL_TOPIC, linkAnchor.getKey());
             }
         }
         time = System.currentTimeMillis() - time;
-        Statistics.getInstance().addParserKafkaPutTime(time,threadNum);
+        Statistics.getInstance().addParserKafkaPutTime(time, threadNum);
     }
 }
