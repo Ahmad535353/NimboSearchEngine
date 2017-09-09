@@ -1,6 +1,6 @@
 package kafka;
 
-import crawler.Crawler;
+import crawler.ThreadManager;
 import org.apache.kafka.clients.consumer.*;
 import utils.Constants;
 
@@ -45,19 +45,17 @@ public class ConsumerApp extends Thread {
 
 
     public void run() {
+//        int sleepTime = Constants.KAFKA_SLEEP_TIME;
         while (true) {
+//            try {
+//                Thread.sleep(sleepTime);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
             ConsumerRecords<String, String> records = consumer.poll(50);
             for (ConsumerRecord<String, String> record : records) {
                 try {
-//                    while (Crawler.urlQueue.remainingCapacity() <= 10) {
-//                        consumer.pause(consumer.assignment());
-//                        consumer.poll(1);
-//                        Thread.sleep(100);
-//                    }
-//
-//                    consumer.resume(consumer.assignment());
-
-                    Crawler.urlQueue.put(record.value());
+                    ThreadManager.kafkaTookUrlQueue.put(record.value());
 
                 } catch (IllegalStateException e) {
 //                    logger.error("{}", e.getMessage());
@@ -65,29 +63,6 @@ public class ConsumerApp extends Thread {
                     e.printStackTrace();
                 }
             }
-
-//            while (Crawler.urlQueue.remainingCapacity() > 150) {
-//
-//                ConsumerRecords<String, String> records = consumer.poll(50);
-//
-//                for (ConsumerRecord<String, String> record : records) {
-//                    try {
-//                        Crawler.urlQueue.put(record.value());
-//                    } catch (IllegalStateException e) {
-////                    logger.error("{}", e.getMessage());
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//            while (!Crawler.urlQueue.isEmpty()){
-//                try {
-//                    Thread.sleep(Constants.KAFKA_SLEEP_TIME);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            consumer.commitAsync();
         }
 
     }

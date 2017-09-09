@@ -16,14 +16,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class Crawler {
 
-    public static Elastic elasticEngine;
-    public static ArrayBlockingQueue<String> urlQueue;
-    public static ArrayBlockingQueue<Pair<String, Document>> fetchedData;
+//    public static Elastic elasticEngine;
     private static Logger logger;
-
+    public static LruCache firstCache = new LruCache(Constants.LRU_TIME_LIMIT);
+    public static LruCache secondCache = new LruCache(Constants.LRU_TIME_LIMIT);
     static {
-        urlQueue = new ArrayBlockingQueue<String>(Constants.URL_QUEUE_SIZE);
-        fetchedData = new ArrayBlockingQueue<>(Constants.FETCHED_DATA_QUEUE_SIZE);
         logger = LoggerFactory.getLogger(Crawler.class);
 //        elasticEngine = new Elastic();
     }
@@ -44,18 +41,27 @@ public class Crawler {
         ProducerApp.send(Constants.URL_TOPIC, "http://www.news.google.com");
         ProducerApp.send(Constants.URL_TOPIC, "http://www.independent.co.uk");
 
-        Statistics.getInstance().setThreadsNums(Constants.FETCHER_NUMBER, Constants.PARSER_NUMBER);
+        Statistics.getInstance().setThreadsNums(Constants.WORKER_THREAD_NUMBER);
         Thread stat = new Thread(Statistics.getInstance());
         stat.start();
 
-        for (int i = 0; i < Constants.PARSER_NUMBER; i++) {
-            new Thread(new Parser(i)).start();
+        Thread manager = new Thread(new ThreadManager());
+
+        for (int i = 0; i < Constants.WORKER_THREAD_NUMBER + Constants.PARSER_THREAD_NUMBER; i++) {
+            new Thread(new WorkerThread(i)).start();
         }
-        for (int i = 0; i < Constants.FETCHER_NUMBER; i++) {
-            new Thread(new Fetcher(i)).start();
-        }
+
+//        for (int i = 0; i < Constants.PARSER_NUMBER; i++) {
+//            new Thread(new Parser(i)).start();
+//        }
+//        for (int i = 0; i < Constants.FETCHER_NUMBER; i++) {
+//            new Thread(new Fetcher(i)).start();
+//        }
 
         ConsumerApp consumerApp = new ConsumerApp();
         consumerApp.start();
+
+        Thread.sleep(20000);
+        manager.start();
     }
 }

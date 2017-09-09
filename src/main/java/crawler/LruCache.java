@@ -11,17 +11,9 @@ import java.util.concurrent.TimeUnit;
 
 class LruCache {
     private LoadingCache<String, Boolean> cacheLoader;
-    private static LruCache myCache;
 
-    public synchronized static LruCache getInstance() {
-        if (myCache == null) {
-            myCache = new LruCache();
-        }
-        return myCache;
-    }
-
-    private LruCache() {
-        cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(Constants.LRU_TIME_LIMIT, TimeUnit.SECONDS)
+    public LruCache(int timeLimit) {
+        cacheLoader = CacheBuilder.newBuilder().expireAfterWrite(timeLimit, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, Boolean>() {
                     @Override
                     public Boolean load(String key) throws Exception {

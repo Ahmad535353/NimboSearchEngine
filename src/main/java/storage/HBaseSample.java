@@ -62,6 +62,16 @@ public class HBaseSample implements Storage {
                 linkAnchors[i] = null;
     }
 
+    public boolean[] existsAll(ArrayList<String > links) throws IOException {
+        ArrayList<Get> arrayList = new ArrayList<>();
+
+        for (String link : links){
+            arrayList.add(new Get(Bytes.toBytes(link)));
+        }
+        boolean[] result = mTable.existsAll(arrayList);
+        return result;
+    }
+
     @Override
     public boolean exists(String rowKey) throws IOException {
         Get get = new Get(Bytes.toBytes(rowKey));
