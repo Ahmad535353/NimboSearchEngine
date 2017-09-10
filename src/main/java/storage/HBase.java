@@ -21,6 +21,8 @@ public class HBase implements Storage {
     private static Connection connection;
     private Table table;
 
+    private int c;
+
     public HBase(String tableName, String familyName) throws IOException {
         this.tableName = tableName;
         this.familyName = familyName;
