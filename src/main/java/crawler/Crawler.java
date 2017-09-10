@@ -41,15 +41,42 @@ public class Crawler {
         ProducerApp.send(Constants.URL_TOPIC, "http://www.news.google.com");
         ProducerApp.send(Constants.URL_TOPIC, "http://www.independent.co.uk");
 
-        Statistics.getInstance().setThreadsNums(Constants.WORKER_THREAD_NUMBER);
+
+        int totalThreadNum = Constants.EXAMINE_THREAD_NUMBER + Constants.FETCHER_THREAD_NUMBER
+                + Constants.PARSER_THREAD_NUMBER + Constants.HBASE_THREAD_NUMBER + Constants.ELASTIC_THREAD_NUMBER
+                + Constants.KAFKA_THREAD_NUMBER;
+        ConsumerApp consumerApp = new ConsumerApp();
+        consumerApp.start();
+
+        Statistics.getInstance().setThreadsNums(totalThreadNum);
         Thread stat = new Thread(Statistics.getInstance());
         stat.start();
 
         Thread manager = new Thread(new ThreadManager());
 
-        for (int i = 0; i < Constants.WORKER_THREAD_NUMBER + Constants.PARSER_THREAD_NUMBER; i++) {
-            new Thread(new WorkerThread(i)).start();
+//        for (int i = 0; i < Constants.WORKER_THREAD_NUMBER + Constants.PARSER_THREAD_NUMBER; i++) {
+//            new Thread(new WorkerThread(i)).start();
+//        }
+        int i = 0;
+        for (int j = 0; j < Constants.EXAMINE_THREAD_NUMBER; j++, i++) {
+            new Thread(new WorkerThread(i, 1)).start();
         }
+        for (int j = 0; j < Constants.FETCHER_THREAD_NUMBER; j++, i++) {
+            new Thread(new WorkerThread(i, 2)).start();
+        }
+        for (int j = 0; j < Constants.PARSER_THREAD_NUMBER; j++, i++) {
+            new Thread(new WorkerThread(i, 3)).start();
+        }
+        for (int j = 0; j < Constants.HBASE_THREAD_NUMBER; j++, i++) {
+            new Thread(new WorkerThread(i, 4)).start();
+        }
+        for (int j = 0; j < Constants.ELASTIC_THREAD_NUMBER; j++, i++) {
+            new Thread(new WorkerThread(i, 5)).start();
+        }
+        for (int j = 0; j < Constants.KAFKA_THREAD_NUMBER; j++, i++) {
+            new Thread(new WorkerThread(i, 6)).start();
+        }
+
 
 //        for (int i = 0; i < Constants.PARSER_NUMBER; i++) {
 //            new Thread(new Parser(i)).start();
@@ -58,10 +85,8 @@ public class Crawler {
 //            new Thread(new Fetcher(i)).start();
 //        }
 
-        ConsumerApp consumerApp = new ConsumerApp();
-        consumerApp.start();
 
-        Thread.sleep(20000);
-        manager.start();
+//        Thread.sleep(20000);
+//        manager.start();
     }
 }

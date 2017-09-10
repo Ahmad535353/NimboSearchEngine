@@ -293,22 +293,22 @@ public class Statistics implements Runnable{
             Long rate = first/ REFRESH_TIME;
 
             periodLogger.info("links in wait for examine:     {}    {} Threads(fake)      {} Threads(real)"
-                    , ThreadManager.kafkaTookUrlQueue.size(),ThreadManager.examineThreadNum
+                    , ThreadManager.kafkaTookUrlQueue.size(),ThreadManager.threadNumArr[0]
                     , Statistics.examineThreadNum.get());
             periodLogger.info("links in wait for fetch:       {}    {} Threads(fake)      {} Threads(real)"
-                    , ThreadManager.allowedUrls.size(), ThreadManager.fetchThreadNum
+                    , ThreadManager.allowedUrls.size(), ThreadManager.threadNumArr[1]
                     , Statistics.fetchThreadNum.get());
             periodLogger.info("documents in wait for parse:   {}    {} Threads(fake)      {} Threads(real)"
-                    , ThreadManager.fetchedData.size(), ThreadManager.parserThreadNum
+                    , ThreadManager.fetchedData.size(), ThreadManager.threadNumArr[2]
                     , Statistics.parserThreadNum.get());
             periodLogger.info("data in wait for HBase:        {}    {} Threads(fake)      {} Threads(real)"
-                    , ThreadManager.linksAndAnchorsForHbase.size(), ThreadManager.hbasePutThreadNum
+                    , ThreadManager.linksAndAnchorsForHbase.size(), ThreadManager.threadNumArr[3]
                     , Statistics.hbasePutThreadNum.get());
             periodLogger.info("data in wait for elastic:      {}    {} Threads(fake)      {} Threads(real)"
-                    , ThreadManager.linkTitleContentForElastic.size(), ThreadManager.elasticPutThreadNum
+                    , ThreadManager.linkTitleContentForElastic.size(), ThreadManager.threadNumArr[4]
                     , Statistics.elasticPutThreadNum.get());
             periodLogger.info("data in wait for kafka:        {}    {} Threads(fake)      {} Threads(real)"
-                    , ThreadManager.linksForKafka.size(), ThreadManager.kafkaPutThreadNum
+                    , ThreadManager.linksForKafka.size(), ThreadManager.threadNumArr[5]
                     , Statistics.kafkaPutThreadNum.get());
             periodLogger.info("\t Crawler Rate is {} links/sec\n",rate);
 

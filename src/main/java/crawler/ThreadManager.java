@@ -10,35 +10,38 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class ThreadManager implements Runnable{
     public static ArrayBlockingQueue<String> kafkaTookUrlQueue;
-    public static int examineThreadNum;
+    private static int examineThreadNum;
     public static ArrayBlockingQueue<String> allowedUrls;
-    public static int fetchThreadNum;
+    private static int fetchThreadNum;
     public static ArrayBlockingQueue<Pair<String, Connection.Response>> fetchedData;
-    public static int parserThreadNum;
+    private static int parserThreadNum;
     public static ArrayBlockingQueue<Pair[]> linksForKafka;
-    public static int kafkaPutThreadNum;
+    private static int kafkaPutThreadNum;
     public static ArrayBlockingQueue<Pair<String, Pair[]>> linksAndAnchorsForHbase;
-    public static int hbasePutThreadNum;
+    private static int hbasePutThreadNum;
     public static ArrayBlockingQueue<ArrayList<String>> linkTitleContentForElastic;
-    public static int elasticPutThreadNum;
+    private static int elasticPutThreadNum;
+    public static int[] threadNumArr = new int[6];
 
     ThreadManager(){
-        kafkaTookUrlQueue = new ArrayBlockingQueue<>(1000);
-        allowedUrls = new ArrayBlockingQueue<>(1000);
-        fetchedData = new ArrayBlockingQueue<>(1000);
-        linksForKafka = new ArrayBlockingQueue<>(1000);
-        linksAndAnchorsForHbase = new ArrayBlockingQueue<>(1000);
-        linkTitleContentForElastic = new ArrayBlockingQueue<>(1000);
+        kafkaTookUrlQueue = new ArrayBlockingQueue<>(2000);
+        allowedUrls = new ArrayBlockingQueue<>(2000);
+        fetchedData = new ArrayBlockingQueue<>(2000);
+        linksForKafka = new ArrayBlockingQueue<>(2000);
+        linksAndAnchorsForHbase = new ArrayBlockingQueue<>(2000);
+        linkTitleContentForElastic = new ArrayBlockingQueue<>(2000);
 
-        examineThreadNum = Constants.WORKER_THREAD_NUMBER / 6;
+        examineThreadNum = (Constants.WORKER_THREAD_NUMBER + Constants.PARSER_THREAD_NUMBER) / 6;
         fetchThreadNum = examineThreadNum;
         parserThreadNum = examineThreadNum;
         kafkaPutThreadNum = examineThreadNum;
         hbasePutThreadNum = examineThreadNum;
         elasticPutThreadNum = examineThreadNum;
+        for (int i = 0; i < threadNumArr.length; i++) {
+            threadNumArr[i] = (i + 1) * examineThreadNum;
+        }
     }
     public void manage() {
-        parserThreadNum = Constants.PARSER_THREAD_NUMBER;
         double fixKafkaTookUrlQueue = kafkaTookUrlQueue.size();
         double fixAllowedUrls = allowedUrls.size();
 //        double fixFetchedData = fetchedData.size();
@@ -57,23 +60,30 @@ public class ThreadManager implements Runnable{
         if (examineThreadNum == 0){
             examineThreadNum = 1;
         }
+        threadNumArr[0] = examineThreadNum;
         fetchThreadNum = (int) ((fixAllowedUrls / totalData) * Constants.WORKER_THREAD_NUMBER);
-        if (fetchThreadNum == 0){
-            fetchThreadNum = 1;
-        }
+//        if (fetchThreadNum == 0){
+//            fetchThreadNum = 1;
+//        }
+        threadNumArr[1] = threadNumArr[0] + fetchThreadNum;
 //        parserThreadNum = (int) ((fixFetchedData / totalData) * Constants.WORKER_THREAD_NUMBER);
+        parserThreadNum = Constants.PARSER_THREAD_NUMBER;
+        threadNumArr[2] = threadNumArr[1] + parserThreadNum;
         kafkaPutThreadNum = (int) ((fixLinksForKafka / totalData) * Constants.WORKER_THREAD_NUMBER);
-        if (kafkaPutThreadNum == 0){
-            kafkaPutThreadNum = 1;
-        }
+//        if (kafkaPutThreadNum == 0){
+//            kafkaPutThreadNum = 1;
+//        }
+        threadNumArr[3] = threadNumArr[2] + kafkaPutThreadNum;
         hbasePutThreadNum = (int) ((fixLinksAndAnchorsForHbase / totalData) * Constants.WORKER_THREAD_NUMBER);
-        if (hbasePutThreadNum == 0){
-            hbasePutThreadNum = 1;
-        }
+//        if (hbasePutThreadNum == 0){
+//            hbasePutThreadNum = 1;
+//        }
+        threadNumArr[4] = threadNumArr[3] + hbasePutThreadNum;
         elasticPutThreadNum = (int) ((fixLinkTitleContentForElastic / totalData) * Constants.WORKER_THREAD_NUMBER);
-        if (elasticPutThreadNum == 0){
-            elasticPutThreadNum = 1;
-        }
+//        if (elasticPutThreadNum == 0){
+//            elasticPutThreadNum = 1;
+//        }
+        threadNumArr[5] = threadNumArr[4] + elasticPutThreadNum;
     }
 
     @Override

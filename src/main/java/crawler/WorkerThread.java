@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class WorkerThread implements Runnable{
+    int fixTask;
     private HBase storage;
 //    private HBaseSample storage;
     private int threadNum;
@@ -31,13 +32,14 @@ public class WorkerThread implements Runnable{
     private Statistics statistics = Statistics.getInstance();
     private int taskNumber = 0;
 
-    WorkerThread(int threadNum){
+    WorkerThread(int threadNum, int fixTask){
         this.threadNum = threadNum;
         try {
             storage = new HBase(Constants.HBASE_TABLE_NAME, Constants.HBASE_FAMILY_NAME);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.fixTask = fixTask;
 //        try {
 //            storage = new HBaseSample(Constants.HBASE_TABLE_NAME, Constants.HBASE_FAMILY_NAME);
 //        } catch (IOException e) {
@@ -49,7 +51,12 @@ public class WorkerThread implements Runnable{
     public void run() {
         System.out.println("worker " + threadNum + "started");
         while (true){
-            taskNumber = decideTask();
+            if (fixTask != 0){
+                taskNumber = fixTask;
+            }
+            else {
+                taskNumber = decideTask();
+            }
             if (taskNumber == 1){
                 Statistics.examineThreadNum.incrementAndGet();
                 examineUrl();
@@ -78,37 +85,20 @@ public class WorkerThread implements Runnable{
             else if (taskNumber == 6){
                 Statistics.kafkaPutThreadNum.incrementAndGet();
                 putInKafka();
-                Statistics.kafkaPutThreadNum.decrementAndGet()      ;
+                Statistics.kafkaPutThreadNum.decrementAndGet();
             }
         }
     }
 
     private int decideTask() {
-//        return ((threadNum % 2) + 1);
-        int treshold = Constants.PARSER_THREAD_NUMBER;
-        if (threadNum < treshold){
-            return 3;
+        int[] nums;
+        nums = ThreadManager.threadNumArr.clone();
+        for (int i = 0; i < nums.length; i++) {
+            if (threadNum < nums[i]){
+                return i;
+            }
         }
-        treshold += ThreadManager.examineThreadNum;
-        if (threadNum < treshold){
-            return 1;
-        }
-        treshold += ThreadManager.fetchThreadNum;
-        if (threadNum < treshold){
-            return 2;
-        }
-        treshold += ThreadManager.hbasePutThreadNum;
-        if (threadNum < treshold){
-            return 4;
-        }
-        treshold += ThreadManager.elasticPutThreadNum;
-        if (threadNum < treshold){
-            return 5;
-        }
-        else {
-            return 6;
-        }
-
+        return 3;
     }
 
     private void examineUrl() {
