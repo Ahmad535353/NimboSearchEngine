@@ -25,7 +25,7 @@ public class ConsumerApp extends Thread {
         props.put("connections.max.idle.ms", 540000);
         props.put("enable.auto.commit", false);
         props.put("exclude.internal.topics", true);
-        props.put("max.poll.records", 300);
+        props.put("max.poll.records", 100);
 //        props.put("max.poll.interval.ms",50);
         props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RangeAssignor");
         props.put("request.timeout.ms", 40000);
