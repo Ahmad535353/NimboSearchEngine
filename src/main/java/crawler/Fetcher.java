@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static crawler.Parser.SYNC_OBJECT;
+import static storage.HBase.setOfUrls;
+
 public class Fetcher implements Runnable {
 
     private int threadNum;
@@ -140,7 +143,11 @@ public class Fetcher implements Runnable {
     private boolean CheckWithHBase(String link) throws IOException {
         long time = System.currentTimeMillis();
 
-        boolean result = storage.exists(link);
+//        boolean result = storage.exists(link);
+        boolean result = false;
+        synchronized (SYNC_OBJECT) {
+            result = setOfUrls.contains(link.hashCode());
+        }
 
         time = System.currentTimeMillis() - time;
         Statistics.getInstance().addFetcherHBaseCheckTime(time, threadNum);

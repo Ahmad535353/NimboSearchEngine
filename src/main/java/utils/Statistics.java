@@ -242,7 +242,6 @@ public class Statistics implements Runnable{
             periodLogger.info("Parser: {} links added in Elastic in {}ms", first,second);
             if (first != 0)
                 periodLogger.info("\taverage time per link = {} ms/link", second/first);
-            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(PARSER_HBASE_PUT_NUM) - oldTotal.get(PARSER_HBASE_PUT_NUM);
             second = newTotal.get(PARSER_HBASE_PUT_TIME) - oldTotal.get(PARSER_HBASE_PUT_TIME);
@@ -251,6 +250,8 @@ public class Statistics implements Runnable{
             periodLogger.info("Parser: {} links putted in HBase in {}ms", first,second);
             if (first != 0)
                 periodLogger.info("\taverage time per link = {} ms/link", second/first);
+
+            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(PARSER_HBASE_CHECK_NUM) - oldTotal.get(PARSER_HBASE_CHECK_NUM);
             second = newTotal.get(PARSER_HBASE_CHECK_TIME) - oldTotal.get(PARSER_HBASE_CHECK_TIME);

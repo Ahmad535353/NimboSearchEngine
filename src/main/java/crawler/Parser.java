@@ -3,6 +3,16 @@ package crawler;
 import com.cybozu.labs.langdetect.Detector;
 import com.cybozu.labs.langdetect.DetectorFactory;
 import com.cybozu.labs.langdetect.LangDetectException;
+import com.google.common.base.Optional;
+import com.optimaize.langdetect.LanguageDetector;
+import com.optimaize.langdetect.LanguageDetectorBuilder;
+import com.optimaize.langdetect.i18n.LdLocale;
+import com.optimaize.langdetect.ngram.NgramExtractors;
+import com.optimaize.langdetect.profiles.LanguageProfile;
+import com.optimaize.langdetect.profiles.LanguageProfileReader;
+import com.optimaize.langdetect.text.CommonTextObjectFactories;
+import com.optimaize.langdetect.text.TextObject;
+import com.optimaize.langdetect.text.TextObjectFactory;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
@@ -14,14 +24,23 @@ import utils.Constants;
 import utils.Pair;
 import utils.Prints;
 import utils.Statistics;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static storage.HBase.setOfUrls;
 
 public class Parser implements Runnable {
 
     private int threadNum = 0;
     private static Logger logger = LoggerFactory.getLogger(Crawler.class);
     private Storage storage;
+    public static AtomicInteger counter = new AtomicInteger(0);
+    public static FileWriter fileWriter = null;
+    public static final Object SYNC_OBJECT = new Object();
 
     Parser(int threadNum) {
         this.threadNum = threadNum;
@@ -30,22 +49,37 @@ public class Parser implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (fileWriter == null)
+            try {
+                fileWriter = new FileWriter(new File("/home/nimbo_search/list-of-languages"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         //    storage = new HBaseSample(Constants.HBASE_TABLE_NAME,Constants.HBASE_TABLE_NAME);
     }
 
     @Override
     public void run() {
-        logger.info("parser {} Started.",threadNum);
+        logger.info("parser {} Started.", threadNum);
 
         Detector detector = null;
 
+        try {
+            detector = DetectorFactory.create();
+        } catch (LangDetectException e) {
+            e.printStackTrace();
+        }
+//        LanguageDetector languageDetector = null;
 //        try {
-//            detector = DetectorFactory.create();
-//        } catch (LangDetectException e) {
+//            List<LanguageProfile> lp = new LanguageProfileReader().readAllBuiltIn();
+//            languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
+//                    .withProfiles(lp)
+//                    .build();
+//        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
 
-        while (true){
+        while (true) {
             String link;
             String title;
             String content;
@@ -75,23 +109,38 @@ public class Parser implements Runnable {
             content = contentBuilder.toString();
 
 
-//            detector.append(content);
+            detector.append(content);
+            String l = null;
+            try {
+                long timeOfDetection1 = System.currentTimeMillis();
+                l = detector.detect();
+                if (!l.equals("en")) {
+                    long timeOfDetection2 = System.currentTimeMillis();
+                    synchronized (SYNC_OBJECT) {
+                        fileWriter.write(l + " " + (timeOfDetection2 - timeOfDetection1) + " ms --- ");
+                        counter.incrementAndGet();
+                        if (counter.get() == 20) {
+                            fileWriter.flush();
+                            counter = new AtomicInteger(0);
+                        }
+                    }
+                    continue;
+                }
+            } catch (LangDetectException e) {
+                e.printStackTrace();
+                continue;
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                continue;
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
 
-//            String l = null;
-//            try {
-//                l = detector.detect();
-//                if (!l.equals("en")) {
-//                    continue;
-//                }
-//            } catch (LangDetectException e) {
-//                e.printStackTrace();
-//                continue;
-//            } catch (NullPointerException e) {
-//                e.printStackTrace();
-//                continue;
-//            }
-//
-//            System.out.println("amirphl" + l);
+//            long t = System.currentTimeMillis();
+//            TextObjectFactory textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
+//            TextObject textObject = textObjectFactory.forText(content);
+//            Optional<LdLocale> lang = languageDetector.detect(textObject);
 
             linkAnchors = extractLinkAnchors(document).toArray(new Pair[0]);
 

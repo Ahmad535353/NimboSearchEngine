@@ -8,11 +8,15 @@ import utils.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 public class HBase implements Storage {
     private String tableName;
     private String familyName;
+    private int counter = 0;
+    private ArrayList<Put> putObjects = new ArrayList<>();
+    public static HashSet<Integer> setOfUrls = new HashSet<>();
 
     private static Connection connection;
     private Table table;
@@ -40,21 +44,38 @@ public class HBase implements Storage {
             put.addColumn(Bytes.toBytes(familyName),
                     Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
         }
-        table.put(put);
+
+        putObjects.add(put);
+        counter++;
+        if (counter == 500) {
+            table.put(putObjects);
+            counter = 0;
+            putObjects = new ArrayList<>();
+        }
+        synchronized (HBase.class) {
+            setOfUrls.add(url.hashCode());
+        }
+//        table.put(put);
     }
 
     @Override
     public void existsAll(Pair<String, String>[] linkAnchors) throws IOException {
-        ArrayList<Get> arrayList = new ArrayList<>();
-
-        for (int i = 0; i < linkAnchors.length; i++)
-            arrayList.add(new Get(Bytes.toBytes(linkAnchors[i].getKey())));
-
-        boolean[] result = table.existsAll(arrayList);
-
-        for (int i = 0; i < linkAnchors.length; i++)
-            if (result[i] == true)
-                linkAnchors[i] = null;
+//        ArrayList<Get> arrayList = new ArrayList<>();
+//
+//        for (int i = 0; i < linkAnchors.length; i++)
+//            arrayList.add(new Get(Bytes.toBytes(linkAnchors[i].getKey())));
+//
+//        boolean[] result = table.existsAll(arrayList);
+//
+//        for (int i = 0; i < linkAnchors.length; i++)
+//            if (result[i] == true)
+//                linkAnchors[i] = null;
+        synchronized (HBase.class) {
+            for (int i = 0; i < linkAnchors.length; i++) {
+                if (setOfUrls.contains(linkAnchors[i].hashCode()))
+                    linkAnchors[i] = null;
+            }
+        }
     }
 
     @Override
