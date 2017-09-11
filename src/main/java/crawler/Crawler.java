@@ -22,7 +22,7 @@ public class Crawler {
     public static LruCache secondCache = new LruCache(Constants.LRU_TIME_LIMIT);
     static {
         logger = LoggerFactory.getLogger(Crawler.class);
-//        elasticEngine = new Elastic();
+//        elasticEngine = Elastic.getInstance();
     }
 
     public static void main(String args[]) throws InterruptedException, LangDetectException {

@@ -24,7 +24,7 @@ public class ThreadManager implements Runnable{
     public static int[] threadNumArr = new int[6];
 
     ThreadManager(){
-        kafkaTookUrlQueue = new ArrayBlockingQueue<>(2000);
+        kafkaTookUrlQueue = new ArrayBlockingQueue<>(20000);
         allowedUrls = new ArrayBlockingQueue<>(2000);
         fetchedData = new ArrayBlockingQueue<>(2000);
         linksForKafka = new ArrayBlockingQueue<>(2000);

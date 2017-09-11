@@ -2,12 +2,15 @@ package kafka;
 
 import crawler.ThreadManager;
 import org.apache.kafka.clients.consumer.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.Constants;
+import utils.Prints;
 
 import java.util.*;
 
 public class ConsumerApp extends Thread {
-    //    private static Logger logger = LoggerFactory.getLogger(crawler.Crawler.class);
+        private static Logger logger = LoggerFactory.getLogger(crawler.Crawler.class);
     public static KafkaConsumer<String, String> consumer;
 
     static {
@@ -23,10 +26,10 @@ public class ConsumerApp extends Thread {
         props.put("session.timeout.ms", 30000);
         props.put("auto.offset.reset", "earliest");
         props.put("connections.max.idle.ms", 540000);
-        props.put("enable.auto.commit", false);
+        props.put("enable.auto.commit", true);
         props.put("exclude.internal.topics", true);
-        props.put("max.poll.records", 100);
-//        props.put("max.poll.interval.ms",50);
+        props.put("max.poll.records", 1000);
+        props.put("max.poll.interval.ms",50);
         props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RangeAssignor");
         props.put("request.timeout.ms", 40000);
         props.put("auto.commit.interval.ms", 5000);
@@ -45,22 +48,14 @@ public class ConsumerApp extends Thread {
 
 
     public void run() {
-//        int sleepTime = Constants.KAFKA_SLEEP_TIME;
         while (true) {
-//            try {
-//                Thread.sleep(sleepTime);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
             ConsumerRecords<String, String> records = consumer.poll(50);
             for (ConsumerRecord<String, String> record : records) {
                 try {
                     ThreadManager.kafkaTookUrlQueue.put(record.value());
 
-                } catch (IllegalStateException e) {
-//                    logger.error("{}", e.getMessage());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (IllegalStateException | InterruptedException e) {
+                    logger.error("Exception in Kafka consumer {}", Prints.getPrintStackTrace(e));
                 }
             }
         }

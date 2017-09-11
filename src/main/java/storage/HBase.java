@@ -31,14 +31,14 @@ public class HBase implements Storage {
     }
 
     @Override
-    public void addLinks(String url, Map.Entry<String, String>[] links) throws IOException {
+    public void addLinks(String url, Map.Entry<String, String>[] links) throws IOException, NullPointerException {
         if (links == null || links.length == 0) {
             return;
         }
         Put put = new Put(Bytes.toBytes(url));
-        for (Map.Entry<String, String> e : links) {
-            put.addColumn(Bytes.toBytes(familyName),
-                    Bytes.toBytes(e.getKey()), Bytes.toBytes(e.getValue()));
+        for (Map.Entry<String, String> entry : links) {
+                put.addColumn(Bytes.toBytes(familyName),
+                        Bytes.toBytes(entry.getKey()), Bytes.toBytes(entry.getValue()));
         }
         table.put(put);
     }

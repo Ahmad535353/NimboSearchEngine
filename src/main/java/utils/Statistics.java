@@ -266,6 +266,7 @@ public class Statistics implements Runnable{
             periodLogger.info("putted {} links in HBase in {}ms", first,second);
             if (first != 0)
                 periodLogger.info("\taverage HBase put time per link = {} ms/link", second/first);
+            Long rate = first/ REFRESH_TIME;
 
             first = newTotal.get(FOR_KAFKA_HBASE_BATCH_CHECK_NUM) - oldTotal.get(FOR_KAFKA_HBASE_BATCH_CHECK_NUM);
             second = newTotal.get(FOR_KAFKA_HBASE_BATCH_CHECK_TIME) - oldTotal.get(FOR_KAFKA_HBASE_BATCH_CHECK_TIME);
@@ -290,7 +291,6 @@ public class Statistics implements Runnable{
             periodLogger.info("putted {} links to elastic in {}ms", first,second);
             if (first != 0)
                 periodLogger.info("\taverage elastic put time per link = {} ms/link", second/first);
-            Long rate = first/ REFRESH_TIME;
 
             periodLogger.info("links in wait for examine:     {}    {} Threads(fake)      {} Threads(real)"
                     , ThreadManager.kafkaTookUrlQueue.size(),ThreadManager.threadNumArr[0]

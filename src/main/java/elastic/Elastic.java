@@ -25,10 +25,21 @@ import java.util.concurrent.ExecutionException;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class Elastic{
-    static Settings settings = Settings.builder()
-            .put("cluster.name", "SearchEngine").build();
-    static TransportClient client;
-    static {
+    private static Elastic myElastic = new Elastic();
+
+    private static TransportClient client;
+
+    public static Elastic getInstance() {
+        return myElastic;
+    }
+
+    public TransportClient getClient() {
+        return client;
+    }
+
+    private Elastic() {
+        Settings settings = Settings.builder()
+                .put("cluster.name", "SearchEngine").build();
         try {
             client = new PreBuiltTransportClient(settings)
                     .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("176.31.102.177"), 9300))
