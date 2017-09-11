@@ -276,11 +276,9 @@ public class WorkerThread implements Runnable {
             if (!l.equals("en")) {
                 return;
             }
-        } catch (LangDetectException e) {
-            e.printStackTrace();
-            return;
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+        } catch (Exception e){
+
+            logger.info(Prints.getPrintStackTrace(e));
             return;
         }
 
