@@ -62,7 +62,7 @@ public class PageRank {
             // ------------------------------------ first reduce -------------------------------------
             JavaPairRDD<String,Double> sum = joinedRanks.reduceByKey((s1,s2)->(s1+s2));
 
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+sum.collect());
+//            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+sum.collect());
 
             // --------------------------------- final map ------------------------------------------
 
