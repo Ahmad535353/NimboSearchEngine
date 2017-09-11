@@ -278,9 +278,11 @@ public class WorkerThread implements Runnable {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } catch (Exception e){
+
+            logger.info(Prints.getPrintStackTrace(e));
             return;
         }
-
 
         linkAnchors = extractLinkAnchors(document).toArray(new Pair[0]);
 
