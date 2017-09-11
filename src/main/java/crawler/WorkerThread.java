@@ -277,9 +277,6 @@ public class WorkerThread implements Runnable {
                 return;
             }
         } catch (Exception e) {
-            e.printStackTrace();
-        } catch (Exception e){
-
             logger.info(Prints.getPrintStackTrace(e));
             return;
         }
