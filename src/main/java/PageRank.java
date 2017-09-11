@@ -42,7 +42,9 @@ public class PageRank {
             }
             return res;
         });
-        JavaPairRDD<String,Double> ranks=links.mapValues(s->1.0/(links.count()));
+        long linksCount = links.count();
+        JavaPairRDD<String,Double> ranks = links.mapValues(s->1.0/linksCount));
+
         for(int i=0;i<50;i++)
         {
             // ----------------------------------- first map -----------------------------------------
