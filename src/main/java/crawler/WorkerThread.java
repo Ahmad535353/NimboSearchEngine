@@ -1,5 +1,8 @@
 package crawler;
 
+import com.cybozu.labs.langdetect.Detector;
+import com.cybozu.labs.langdetect.DetectorFactory;
+import com.cybozu.labs.langdetect.LangDetectException;
 import com.google.common.net.InternetDomainName;
 import elastic.Elastic;
 import kafka.ProducerApp;
@@ -26,6 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -40,6 +44,7 @@ public class WorkerThread implements Runnable {
     private LruCache secondCache = Crawler.secondCache;
     private Statistics statistics = Statistics.getInstance();
     private int taskNumber = 0;
+    private Detector detector;
 
     WorkerThread(int threadNum, int fixTask) {
         this.threadNum = threadNum;
@@ -54,6 +59,11 @@ public class WorkerThread implements Runnable {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        try {
+            detector = DetectorFactory.create();
+        } catch (LangDetectException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -204,7 +214,7 @@ public class WorkerThread implements Runnable {
             return;
         }
         String contentType = res.contentType();
-        if (contentType == null){
+        if (contentType == null) {
             return;
         }
         if (!contentType.startsWith("text/")) {
@@ -258,6 +268,22 @@ public class WorkerThread implements Runnable {
             contentBuilder.append(element.text()).append("\n");
         }
         content = contentBuilder.toString();
+
+        detector.append(content);
+        String l = null;
+        try {
+            l = detector.detect();
+            if (!l.equals("en")) {
+                return;
+            }
+        } catch (LangDetectException e) {
+            e.printStackTrace();
+            return;
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return;
+        }
+
         linkAnchors = extractLinkAnchors(document).toArray(new Pair[0]);
 
         time = System.currentTimeMillis() - time;
@@ -349,9 +375,9 @@ public class WorkerThread implements Runnable {
                 long time = System.currentTimeMillis();
                 logger.info("Parser {} data added to elastic in {}ms for {}", threadNum, time, tmp.get(0));
                 BulkResponse bulkResponse = null;
-                try{
+                try {
                     bulkResponse = bulkRequest.get();
-                } catch (ActionRequestValidationException e){
+                } catch (ActionRequestValidationException e) {
                     logger.info(Prints.getPrintStackTrace(e));
                 }
                 time = System.currentTimeMillis() - time;
@@ -360,7 +386,7 @@ public class WorkerThread implements Runnable {
                 boolean var = false;
                 try {
                     var = bulkResponse.hasFailures();
-                } catch (NullPointerException e){
+                } catch (NullPointerException e) {
                     logger.info(Prints.getPrintStackTrace(e));
                 }
                 if (var) {
@@ -438,7 +464,7 @@ public class WorkerThread implements Runnable {
         for (Element element : document.select("a[href]")) {
             String extractedLink = element.attr("abs:href");
             String anchor = element.text();
-            if (anchor == null){
+            if (anchor == null) {
                 anchor = "link";
             }
             if (extractedLink == null || extractedLink.isEmpty() || extractedLink.length() > 512) {

@@ -2,17 +2,12 @@ package crawler;
 
 import com.cybozu.labs.langdetect.DetectorFactory;
 import com.cybozu.labs.langdetect.LangDetectException;
-import elastic.Elastic;
-import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import kafka.ConsumerApp;
 import kafka.ProducerApp;
 import utils.Constants;
-import utils.Pair;
 import utils.Statistics;
-
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class Crawler {
 
@@ -27,7 +22,7 @@ public class Crawler {
 
     public static void main(String args[]) throws InterruptedException, LangDetectException {
 
-//        DetectorFactory.loadProfile("/home/nimbo_search/amirphl/profiles");
+        DetectorFactory.loadProfile("/home/nimbo_search/amirphl/profiles");
 
         logger.info("Seed added.");
         ProducerApp.send(Constants.URL_TOPIC, "https://en.wikipedia.org/wiki/Main_Page");
