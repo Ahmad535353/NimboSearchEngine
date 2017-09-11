@@ -276,13 +276,11 @@ public class WorkerThread implements Runnable {
             if (!l.equals("en")) {
                 return;
             }
-        } catch (LangDetectException e) {
-            e.printStackTrace();
-            return;
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return;
         }
+
 
         linkAnchors = extractLinkAnchors(document).toArray(new Pair[0]);
 

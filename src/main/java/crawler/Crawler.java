@@ -22,7 +22,7 @@ public class Crawler {
 
     public static void main(String args[]) throws InterruptedException, LangDetectException {
 
-        DetectorFactory.loadProfile("/home/nimbo_search/amirphl/profiles");
+        DetectorFactory.loadProfile("/home/nimbo_search/profiles");
 
         logger.info("Seed added.");
         ProducerApp.send(Constants.URL_TOPIC, "https://en.wikipedia.org/wiki/Main_Page");
